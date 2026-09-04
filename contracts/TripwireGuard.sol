@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.22;
 
-import {Operation} from "@gnosis-guild/zodiac-core/contracts/core/Operation.sol";
+import {Enum} from "@gnosis.pm/safe-contracts/contracts/common/Enum.sol";
 import {BaseGuard} from "@gnosis-guild/zodiac-core/contracts/guard/BaseGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -147,7 +147,7 @@ contract TripwireGuard is BaseGuard, Ownable {
 
     /// @dev Matches the exact hashing scheme the off-chain risk engine and
     /// the RiskRegistry both key their verdicts by.
-    function txHashOf(address to, uint256 value, bytes memory data, Operation operation) public pure returns (bytes32) {
+    function txHashOf(address to, uint256 value, bytes memory data, Enum.Operation operation) public pure returns (bytes32) {
         return keccak256(abi.encode(to, value, data, operation));
     }
 
@@ -155,7 +155,7 @@ contract TripwireGuard is BaseGuard, Ownable {
         address to,
         uint256 value,
         bytes memory data,
-        Operation operation,
+        Enum.Operation operation,
         uint256, /* safeTxGas */
         uint256, /* baseGas */
         uint256, /* gasPrice */
