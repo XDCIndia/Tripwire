@@ -1,0 +1,3 @@
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@gnosis.pm/safe-contracts/=lib/safe-contracts/
+@gnosis-guild/zodiac-core/=lib/zodiac-core/

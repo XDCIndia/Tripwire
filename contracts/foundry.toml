@@ -1,0 +1,40 @@
+[profile.default]
+src = "."
+test = "test"
+out = "out"
+libs = ["lib"]
+solc = "0.8.28"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+# With src="." forge scans lib/ for roots too, so dependency test/example
+# files (OZ's own test suite, safe's certora harnesses and examples, zodiac's
+# test contracts) would all become compilation targets. None are imported by
+# our contracts - safe-contracts especially: since the guard moved to
+# zodiac-core v4's Operation enum, nothing in this project imports it at all.
+skip = [
+  "lib/safe-contracts/*",
+  "lib/openzeppelin-contracts/test/*",
+  "lib/openzeppelin-contracts/contracts/mocks/*",
+  "lib/openzeppelin-contracts/fv/*",
+  "lib/openzeppelin-contracts/lib/*",
+  "lib/zodiac-core/contracts/test/*",
+  "test/SafeImports.sol",
+]
+
+[lint]
+# Post-build lint over the full dependency tree takes minutes and adds
+# nothing in CI; run `forge lint` explicitly when touching Solidity.
+lint_on_build = false
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+quote_style = "double"
+number_underscore = "thousands"
+multiline_func_header = "params_first_multi"
+sort_imports = true
+
+# See contracts/README.md for the full end-to-end rehearsal flow.
