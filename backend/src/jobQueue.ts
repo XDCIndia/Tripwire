@@ -124,6 +124,8 @@ export function backoffMs(attempt: number): number {
 export class InMemoryJobStore implements JobStore {
   private readonly jobs = new Map<string, Job>()
 
+  constructor(private readonly options: { maxAttempts?: number } = {}) {}
+
   create(input: CreateJobInput): Job {
     const key = idempotencyKey(input.txHash, input.analysisType)
     // Idempotent: return existing job if one already exists for this pair.
@@ -131,7 +133,7 @@ export class InMemoryJobStore implements JobStore {
       if (job.idempotencyKey === key) return job
     }
 
-    const maxAttempts = input.maxAttempts ?? 3
+    const maxAttempts = input.maxAttempts ?? this.options.maxAttempts ?? 3
     const job: Job = {
       id: randomUUID(),
       txHash: input.txHash,
