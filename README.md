@@ -12,6 +12,35 @@ Blockchain transactions are irreversible. Tripwire's job is to make sure nothing
 
 The Guard fails closed: a transaction with no verdict yet recorded is blocked by default, never allowed.
 
+## Natural-language policies
+
+Wallet owners can describe their protection in plain English and have it compiled into the exact Guard controls that enforce it:
+
+> "Allow payments below $500 to previously used addresses. Delay everything else for 1 hour. Freeze transactions above $10,000."
+
+becomes, deterministically and before anything is activated:
+
+```
+1. ALLOW  value < $500        AND recipient previously used
+2. FREEZE value > $10,000     (any recipient)
+3. DELAY  everything else     for 1 hour
+```
+
+Everything under `backend/src/policy*` + `backend/src/nlPolicyCompiler.ts` implements the pipeline (**issue #39**):
+
+1. **Compile** - `nlPolicyCompiler.ts` parses plain English into a canonical, ordered, JSON-serializable `CompiledPolicy`. Sentences it cannot map onto the policy model are hard errors, never silent drops.
+2. **LLM/machine path** - `policyCompiler.ts#compilePolicyFromJson` validates an LLM-produced policy document against the same rules a human author is held to (unknown fields, wrong types, duplicates, and conflicts all rejected with precise paths). The LLM *interprets*; it is never given authority to bypass validation or to act.
+3. **Validate** - `policyValidator.ts` rejects invalid and conflicting policies (duplicate rules, disagreeing catch-alls, zero/negative amounts, delays without lengths, fail-open allows) before deployment.
+4. **Preview** - `policyMapper.ts#explainPolicy` renders the compiled policy back into readable English, shown to the owner before activation.
+5. **Map to Guard controls** - `resolvePolicy` converts amounts to wei (an explicit `usdPerNative` rate is *required* for fiat amounts, never assumed) and derives the Guard parameters: `perTxLimit` from freeze floors, the cooling-off `defaultDelaySeconds` from delay rules, plus the per-transaction ALLOW / DELAY / FREEZE decision and the exact `RiskRegistry` verdict for it.
+6. **Enforce without an LLM** - `evaluateResolvedPolicy` decides each proposed transaction deterministically; the relayer writes the verdict on-chain before execution and `TripwireGuard.sol` enforces it (fail-closed when no verdict exists). No model call ever happens during execution.
+
+Try it on the example above:
+
+```
+cd backend && npm run demo:policy
+```
+
 ## Repo layout
 
 - **`contracts/`** - `TripwireGuard.sol` (the Zodiac Guard), `RiskRegistry.sol` (the on-chain verdict store), tests, and deploy/demo scripts. Hardhat + Foundry.
