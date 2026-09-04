@@ -9,6 +9,7 @@ import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { SimulationCard } from "./components/SimulationCard.js"
+import { VerificationStatusCard } from "./components/VerificationStatusCard.js"
 import { activeChain } from "./config.js"
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
         <ConnectWallet />
       </header>
       <main className="grid">
+        <VerificationStatusCard />
         <SafeCard />
         <TransactionStateCard />
         <GuardCard />
