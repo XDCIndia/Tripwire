@@ -508,6 +508,24 @@
   margin-top: 12px;
 }
 
+/* Issue #88: Security Degraded-Mode & Recovery */
+
+.health-card {
+  border-width: 2px;
+}
+
+.health-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.health-header h2 {
+  margin: 0;
+}
+
+.health-retry-btn {
 /* Issue #89: Batch Risk Matrix */
 
 .batch-card {
@@ -619,6 +637,17 @@
   cursor: pointer;
 }
 
+.health-retry-btn:hover:not(:disabled) {
+  border-color: var(--accent-border);
+}
+
+.health-retry-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mode banner */
+.health-mode-banner {
 .batch-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -654,6 +683,7 @@
   margin-bottom: 16px;
 }
 
+.health-mode-badge {
 .sim-integrity-status-header {
   margin-bottom: 6px;
 }
@@ -672,6 +702,143 @@
   border-radius: 6px;
   color: #fff;
   letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.health-summary {
+  font-size: 13px;
+  color: var(--text);
+  margin: 6px 0 0;
+}
+
+/* Restricted actions */
+.health-restricted {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.health-restricted h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #dc2626;
+  margin: 0 0 6px;
+}
+
+.health-restricted-desc {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.health-restricted-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.health-restricted-item {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  margin: 2px 4px 2px 0;
+}
+
+/* Normal mode message */
+.health-normal-msg {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.health-normal-msg p {
+  font-size: 13px;
+  color: #16a34a;
+  margin: 0;
+}
+
+/* Recovery message */
+.health-recovering-msg {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.health-recovering-msg p {
+  font-size: 13px;
+  color: #2563eb;
+  margin: 0;
+}
+
+/* Dependencies */
+.health-deps h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 10px;
+}
+
+.health-dep-row {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.health-dep-failed {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.health-dep-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.health-dep-icon {
+  font-size: 13px;
+  font-weight: 700;
+  width: 16px;
+  text-align: center;
+}
+
+.health-dep-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.health-dep-status {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.health-dep-detail {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 0 24px;
+}
+
+.health-dep-actions {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 2px 0 0 24px;
 }
 
 .sim-integrity-explanation {

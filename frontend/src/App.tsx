@@ -10,6 +10,7 @@ import { PolicyChat } from "./components/PolicyChat.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
+import { SecurityHealthCard } from "./components/SecurityHealthCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { SimulationIntegrityCard } from "./components/SimulationIntegrityCard.js"
 import { SimulationCard } from "./components/SimulationCard.js"
@@ -27,6 +28,7 @@ export function App() {
         <ConnectWallet />
       </header>
       <main className="grid">
+        <SecurityHealthCard />
         <VerificationStatusCard />
         <SafeCard />
         <GuardCard />
