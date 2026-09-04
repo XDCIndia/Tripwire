@@ -6,6 +6,7 @@ const ERC20_ALLOWANCE_ABI = parseAbi(["function allowance(address owner, address
 const NFT_IS_APPROVED_FOR_ALL_ABI = parseAbi([
   "function isApprovedForAll(address owner, address operator) view returns (bool)",
 ])
+const ERC721_OWNER_OF_ABI = parseAbi(["function ownerOf(uint256 tokenId) view returns (address)"])
 
 export interface AnvilForkClientConfig {
   rpcUrl: string
@@ -44,6 +45,14 @@ export function createAnvilForkClient(config: AnvilForkClientConfig): ForkClient
         abi: NFT_IS_APPROVED_FOR_ALL_ABI,
         functionName: "isApprovedForAll",
         args: [owner, spender],
+      })
+    },
+    async readErc721Owner(token, tokenId) {
+      return publicClient.readContract({
+        address: token,
+        abi: ERC721_OWNER_OF_ABI,
+        functionName: "ownerOf",
+        args: [tokenId],
       })
     },
     async snapshot() {

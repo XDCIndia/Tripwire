@@ -141,3 +141,86 @@ describe("scoreTransaction", function () {
     expect(result.matchedSignals).toHaveLength(5)
   })
 })
+
+describe("scoreTransaction with simulation signals (issue #44)", function () {
+  const noSignals = {
+    simulationFailed: false,
+    callReverted: false,
+    hiddenNativeOutflow: false,
+    unexpectedAllowanceIncrease: false,
+    ownershipTransferDetected: false,
+  }
+
+  it("without simulation input, scoring is unchanged from pre-#44 behavior", function () {
+    const baseline = scoreTransaction(baseInput())
+    expect(baseline.score).toBe(0)
+    expect(baseline.label).toBe("low_risk")
+    expect(baseline.matchedSignals).toEqual([])
+  })
+
+  it("an all-clear simulation report adds nothing", function () {
+    const result = scoreTransaction(baseInput({ simulation: noSignals }))
+    expect(result.score).toBe(0)
+    expect(result.label).toBe("low_risk")
+  })
+
+  it("a failed simulation escalates to medium_risk (35) - never silent, never approving", function () {
+    const result = scoreTransaction(baseInput({ simulation: { ...noSignals, simulationFailed: true } }))
+    expect(result.score).toBe(35)
+    expect(result.label).toBe("medium_risk")
+    expect(result.matchedSignals.join(" ")).toMatch(/never auto-approved/)
+  })
+
+  it("a reverted call on the fork scores 40", function () {
+    const result = scoreTransaction(baseInput({ simulation: { ...noSignals, callReverted: true } }))
+    expect(result.score).toBe(40)
+    expect(result.label).toBe("medium_risk")
+  })
+
+  it("an unexpected allowance increase (issue #44's headline case) scores 45", function () {
+    const result = scoreTransaction(baseInput({ simulation: { ...noSignals, unexpectedAllowanceIncrease: true } }))
+    expect(result.score).toBe(45)
+    expect(result.label).toBe("medium_risk")
+    expect(result.matchedSignals.join(" ")).toMatch(/never discloses/)
+  })
+
+  it("a hidden native outflow scores 35", function () {
+    const result = scoreTransaction(baseInput({ simulation: { ...noSignals, hiddenNativeOutflow: true } }))
+    expect(result.score).toBe(35)
+  })
+
+  it("an NFT leaving the wallet scores 40", function () {
+    const result = scoreTransaction(baseInput({ simulation: { ...noSignals, ownershipTransferDetected: true } }))
+    expect(result.score).toBe(40)
+  })
+
+  it("benign calldata + concealed permission change lands in the delay window", function () {
+    // The issue #44 example: harmless-looking calldata whose simulation
+    // reveals an unlimited allowance to an unknown contract. Drainer flows
+    // look like this on the surface.
+    const result = scoreTransaction(
+      baseInput({
+        data: PLAIN_TRANSFER_DATA,
+        value: 100n,
+        simulation: { ...noSignals, unexpectedAllowanceIncrease: true },
+      }),
+    )
+    expect(result.score).toBe(45)
+    expect(result.label).toBe("medium_risk") // DELAYED on-chain, not executed
+  })
+
+  it("stacked sim findings push well past the high_risk threshold", function () {
+    const result = scoreTransaction(
+      baseInput({
+        data: UNLIMITED_APPROVE_DATA, // 40 by itself
+        simulation: {
+          ...noSignals,
+          unexpectedAllowanceIncrease: true, // +45: the approve isn't to who it claims
+          hiddenNativeOutflow: true, // +35
+        },
+      }),
+    )
+    expect(result.score).toBe(100) // capped
+    expect(result.label).toBe("high_risk")
+  })
+})

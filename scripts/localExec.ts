@@ -2,7 +2,7 @@
  * Submits one execTransaction attempt against the locally-deployed Safe, as
  * its owner. Since the Guard is active, a fresh (to, value, data) tuple
  * will revert the first time (fail-closed) - that's expected. Run the
- * backend orchestrator (backend/src/localWatcherLoop.ts) to get it scored,
+ * backend orchestrator (backend/scripts/localWatcherLoop.ts) to get it scored,
  * then run this again with the same ACTION to retry.
  *
  *   ACTION=transfer npx hardhat run scripts/localExec.ts --network localhost

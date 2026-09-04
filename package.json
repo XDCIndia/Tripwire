@@ -10,6 +10,8 @@
     "build": "hardhat compile",
     "coverage": "hardhat coverage",
     "deploy": "hardhat deploy",
+    "deploy:testnet": "hardhat run scripts/deployTestnet.ts",
+    "deploy:verify": "hardhat run scripts/verifyDeployment.ts",
     "test": "hardhat test"
   },
   "keywords": [

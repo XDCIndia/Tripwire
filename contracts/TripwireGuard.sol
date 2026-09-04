@@ -81,6 +81,7 @@ contract TripwireGuard is BaseGuard, Ownable {
     error NotAvatar(address caller);
     error PerTxLimitExceeded(bytes32 txHash, uint256 value, uint256 limit);
     error RollingLimitExceeded(bytes32 txHash, uint256 attemptedTotal, uint256 limit);
+    error InvalidZeroAddress();
 
     modifier onlyOwnerOrFreezeAuthority() {
         if (msg.sender != owner() && msg.sender != freezeAuthority) {
@@ -94,9 +95,7 @@ contract TripwireGuard is BaseGuard, Ownable {
         _;
     }
 
-    constructor(address _owner, address _riskRegistry, address _freezeAuthority, address _avatar)
-        Ownable(_owner)
-    {
+    constructor(address _owner, address _riskRegistry, address _freezeAuthority, address _avatar) Ownable(_owner) {
         riskRegistry = IRiskRegistry(_riskRegistry);
         emit RiskRegistryUpdated(_riskRegistry);
         freezeAuthority = _freezeAuthority;
@@ -105,29 +104,24 @@ contract TripwireGuard is BaseGuard, Ownable {
         emit AvatarUpdated(_avatar);
     }
 
-    /// @notice Update the Safe address this Guard is attached to.
-    /// @dev Only callable by the owner. Rejects address(0).
     function setAvatar(address _avatar) external onlyOwner {
+        if (_avatar == address(0)) revert InvalidZeroAddress();
         avatar = _avatar;
         emit AvatarUpdated(_avatar);
     }
 
-    /// @notice Update the RiskRegistry used for verdict lookups.
-    /// @dev Only callable by the owner. Rejects address(0).
     function setRiskRegistry(address _riskRegistry) external onlyOwner {
+        if (_riskRegistry == address(0)) revert InvalidZeroAddress();
         riskRegistry = IRiskRegistry(_riskRegistry);
         emit RiskRegistryUpdated(_riskRegistry);
     }
 
-    /// @notice Update the freeze authority (the off-chain relayer that can trip the breaker).
-    /// @dev Only callable by the owner. Rejects address(0).
     function setFreezeAuthority(address _freezeAuthority) external onlyOwner {
+        if (_freezeAuthority == address(0)) revert InvalidZeroAddress();
         freezeAuthority = _freezeAuthority;
         emit FreezeAuthorityUpdated(_freezeAuthority);
     }
 
-    /// @notice Update the per-transaction and rolling 24h spending limits.
-    /// @dev Only callable by the owner. A value of 0 disables that limit.
     function setLimits(uint256 _perTxLimit, uint256 _rollingLimit) external onlyOwner {
         perTxLimit = _perTxLimit;
         rollingLimit = _rollingLimit;
@@ -157,20 +151,10 @@ contract TripwireGuard is BaseGuard, Ownable {
 
     /// @dev Matches the exact hashing scheme the off-chain risk engine and
     /// the RiskRegistry both key their verdicts by.
-    /// @notice Compute the deterministic hash that keys verdicts in the RiskRegistry.
-    /// @dev Must match the off-chain computation in safeExecDecoder.ts exactly.
-    function txHashOf(address to, uint256 value, bytes memory data, Enum.Operation operation)
-        public
-        pure
-        returns (bytes32)
-    {
+    function txHashOf(address to, uint256 value, bytes memory data, Enum.Operation operation) public pure returns (bytes32) {
         return keccak256(abi.encode(to, value, data, operation));
     }
 
-    /// @notice Zodiac Guard hook: called by the Safe before executing a transaction.
-    /// @dev Enforces fail-closed: reverts if frozen, unscored, high-risk, or in cooling-off.
-    ///      Also enforces on-chain spending limits as a hard backstop.
-    ///      Only callable by the avatar (the Safe).
     function checkTransaction(
         address to,
         uint256 value,
@@ -209,18 +193,13 @@ contract TripwireGuard is BaseGuard, Ownable {
             revert PerTxLimitExceeded(txHash, value, perTxLimit);
         }
         if (rollingLimit != 0) {
-            // Cache _currentWindowSpent() to avoid a redundant SLOAD.
-            uint256 spent = _currentWindowSpent();
-            uint256 projected = spent + value;
+            uint256 projected = _currentWindowSpent() + value;
             if (projected > rollingLimit) revert RollingLimitExceeded(txHash, projected, rollingLimit);
         }
 
         _pendingValue[txHash] = value;
     }
 
-    /// @notice Zodiac Guard hook: called by the Safe after executing a transaction.
-    /// @dev Records spend against the rolling limit only on successful execution.
-    ///      Only callable by the avatar (the Safe).
     function checkAfterExecution(bytes32 txHash, bool success) external override onlyAvatar {
         uint256 value = _pendingValue[txHash];
         delete _pendingValue[txHash];
