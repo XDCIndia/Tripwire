@@ -57,12 +57,17 @@ function normalizeFeed(body: unknown): RiskFeedItemDto[] {
       txHash?: string
       status?: string
       updatedAt?: string
-      canonical?: { score?: number; status?: string; action?: string; explanation?: string }
-      contributions?: Array<{ reasons?: string[] }>
+      canonical?: {
+        score?: number
+        status?: string
+        action?: string
+        explanation?: string
+        contributions?: Array<{ reasons?: string[] }>
+      }
     }
     const reasons: string[] = []
     if (state.canonical?.explanation) reasons.push(state.canonical.explanation)
-    for (const c of state.contributions ?? []) reasons.push(...(c.reasons ?? []))
+    for (const c of state.canonical?.contributions ?? []) reasons.push(...(c.reasons ?? []))
     return {
       txHash: state.txHash ?? "",
       score: state.canonical?.score,
