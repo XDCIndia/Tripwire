@@ -78,5 +78,8 @@ export function finalVerdict(
   options: { delaySeconds?: number; now?: () => number } = {},
 ): OnChainVerdict {
   if (!llm) return verdictFromRuleEngine(ruleResult, options)
-  return verdictFromRuleEngine({ score: llm.score, label: llm.label, matchedSignals: ruleResult.matchedSignals }, options)
+  return verdictFromRuleEngine(
+    { score: llm.score, label: llm.label, matchedSignals: ruleResult.matchedSignals },
+    options,
+  )
 }

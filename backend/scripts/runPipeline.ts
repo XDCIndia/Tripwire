@@ -30,7 +30,7 @@
  */
 import { readFileSync } from "node:fs"
 
-import { type Chain, createPublicClient, createWalletClient, http, parseAbi } from "viem"
+import { type Abi, type Chain, createPublicClient, createWalletClient, http, parseAbi } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { foundry } from "viem/chains"
 
@@ -99,7 +99,7 @@ function scriptedClient(pass: number): SafeTxServiceClient {
 async function deployRiskRegistry(): Promise<`0x${string}`> {
   const artifact = JSON.parse(
     readFileSync(new URL("../../artifacts/contracts/RiskRegistry.sol/RiskRegistry.json", import.meta.url), "utf8"),
-  ) as { abi: unknown; bytecode: string }
+  ) as { abi: Abi; bytecode: string }
 
   const account = privateKeyToAccount(OWNER_PRIVATE_KEY)
   const walletClient = createWalletClient({ account, chain: foundry, transport: http(RPC_URL) })
