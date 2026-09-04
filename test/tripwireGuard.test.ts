@@ -194,6 +194,24 @@ describe("TripwireGuard", function () {
     )
   })
 
+  it("rejects setAvatar with zero address", async function () {
+    const { guard } = await setup()
+    await expect(guard.setAvatar(ethers.ZeroAddress)).to.be.revertedWithCustomError(guard, "InvalidZeroAddress")
+  })
+
+  it("rejects setRiskRegistry with zero address", async function () {
+    const { guard } = await setup()
+    await expect(guard.setRiskRegistry(ethers.ZeroAddress)).to.be.revertedWithCustomError(guard, "InvalidZeroAddress")
+  })
+
+  it("rejects setFreezeAuthority with zero address", async function () {
+    const { guard } = await setup()
+    await expect(guard.setFreezeAuthority(ethers.ZeroAddress)).to.be.revertedWithCustomError(
+      guard,
+      "InvalidZeroAddress",
+    )
+  })
+
   describe("limits", function () {
     // Simulates the Safe's real call sequence: checkTransaction before the
     // inner call, checkAfterExecution(success) after it - only that second

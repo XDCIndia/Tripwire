@@ -81,6 +81,7 @@ contract TripwireGuard is BaseGuard, Ownable {
     error NotAvatar(address caller);
     error PerTxLimitExceeded(bytes32 txHash, uint256 value, uint256 limit);
     error RollingLimitExceeded(bytes32 txHash, uint256 attemptedTotal, uint256 limit);
+    error InvalidZeroAddress();
 
     modifier onlyOwnerOrFreezeAuthority() {
         if (msg.sender != owner() && msg.sender != freezeAuthority) {
@@ -104,16 +105,19 @@ contract TripwireGuard is BaseGuard, Ownable {
     }
 
     function setAvatar(address _avatar) external onlyOwner {
+        if (_avatar == address(0)) revert InvalidZeroAddress();
         avatar = _avatar;
         emit AvatarUpdated(_avatar);
     }
 
     function setRiskRegistry(address _riskRegistry) external onlyOwner {
+        if (_riskRegistry == address(0)) revert InvalidZeroAddress();
         riskRegistry = IRiskRegistry(_riskRegistry);
         emit RiskRegistryUpdated(_riskRegistry);
     }
 
     function setFreezeAuthority(address _freezeAuthority) external onlyOwner {
+        if (_freezeAuthority == address(0)) revert InvalidZeroAddress();
         freezeAuthority = _freezeAuthority;
         emit FreezeAuthorityUpdated(_freezeAuthority);
     }
