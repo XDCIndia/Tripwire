@@ -59,6 +59,9 @@ async function runPipeline(
     async submitVerdict(_txHash, verdict) {
       submitted = verdict
     },
+    async delayWindow() {
+      return 0
+    },
   })
   await relayer.submitFast(tx.safeTxHash as `0x${string}`, result)
   if (!submitted) throw new Error("relayer did not submit")

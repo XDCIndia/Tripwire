@@ -16,7 +16,7 @@ The Guard fails closed: a transaction with no verdict yet recorded is blocked by
 
 - **`contracts/`** - `TripwireGuard.sol` (the Zodiac Guard), `RiskRegistry.sol` (the on-chain verdict store), tests, and deploy/demo scripts. Hardhat + Foundry.
 - **`backend/`** - the off-chain pipeline: watcher, rule engine, fork simulation, relayer. TypeScript + viem.
-- **`frontend/`** - a read-only dashboard: wallet connect, the Safe's live state, the Guard's configuration. React + Vite + wagmi.
+- **`frontend/`** - the dashboard: wallet connect, the Safe's live state, the Guard's configuration, and an owner-gated policy panel that changes limits / the delay window / freeze state as real on-chain transactions. React + Vite + wagmi.
 
 ## Quick start
 
@@ -24,8 +24,10 @@ The Guard fails closed: a transaction with no verdict yet recorded is blocked by
 npm install
 npm test              # contracts
 cd backend && npm test   # backend
-cd frontend && npm run dev
+cd frontend && npm install && npm run dev
 ```
+
+The dashboard's policy panel signs real `setLimits` / `setDelayWindow` / `freeze` / `unfreeze` transactions from the connected owner wallet — point it at a Guard deployed from `contracts/` via the `VITE_*` env vars (see `frontend/.env.example`).
 
 To run the whole stack together against a real local Safe - see **[LOCAL_TESTING.md](./LOCAL_TESTING.md)**.
 

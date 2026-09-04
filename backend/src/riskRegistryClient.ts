@@ -6,6 +6,7 @@ import type { OnChainVerdict } from "./verdict.js"
 
 const RISK_REGISTRY_ABI = parseAbi([
   "function submitVerdict(bytes32 txHash, (uint8 status, uint8 score, uint256 releaseAt) verdict) external",
+  "function defaultDelayWindow() view returns (uint256)",
 ])
 
 export interface RiskRegistryClientConfig {
@@ -50,6 +51,14 @@ export function createRiskRegistryClient(config: RiskRegistryClientConfig): Risk
       if (receipt.status !== "success") {
         throw new Error(`submitVerdict for ${txHash} reverted (tx ${hash})`)
       }
+    },
+    async delayWindow(): Promise<number> {
+      const seconds = await publicClient.readContract({
+        address: config.contractAddress,
+        abi: RISK_REGISTRY_ABI,
+        functionName: "defaultDelayWindow",
+      })
+      return Number(seconds)
     },
   }
 }
