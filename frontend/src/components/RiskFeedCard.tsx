@@ -35,8 +35,8 @@ interface RiskFeedItemDto {
 
 const configuredFeed = import.meta.env.VITE_RISK_FEED_URL as string | undefined
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined
-/** VITE_RISK_FEED_URL wins; otherwise the feed is served under the backend root. */
-const feedUrl: string | undefined = configuredFeed ?? (backendUrl ? `${backendUrl}/risk-feed` : undefined)
+/** VITE_RISK_FEED_URL wins; otherwise the feed is served at GET /tx on the orchestrator. */
+const feedUrl: string | undefined = configuredFeed ?? (backendUrl ? `${backendUrl}/tx` : undefined)
 
 async function fetchFeed(): Promise<RiskFeedItemDto[]> {
   const res = await fetch(feedUrl!)

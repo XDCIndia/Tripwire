@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "orchestrator": "tsx src/orchestratorHttp.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
