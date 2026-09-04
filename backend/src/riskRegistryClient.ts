@@ -6,6 +6,7 @@ import type { OnChainVerdict } from "./verdict.js"
 
 const RISK_REGISTRY_ABI = parseAbi([
   "function submitVerdict(bytes32 txHash, (uint8 status, uint8 score, uint256 releaseAt) verdict) external",
+  "function defaultDelayWindow() view returns (uint256)",
 ])
 
 /** Hard ceiling on any single RPC round trip - a hung endpoint must fail, not stall the pipeline. */
@@ -55,6 +56,14 @@ export function createRiskRegistryClient(config: RiskRegistryClientConfig): Risk
         // apart from "transient RPC failure, retry" - see relayer.ts.
         throw new VerdictRevertedError(txHash, hash)
       }
+    },
+    async delayWindow(): Promise<number> {
+      const seconds = await publicClient.readContract({
+        address: config.contractAddress,
+        abi: RISK_REGISTRY_ABI,
+        functionName: "defaultDelayWindow",
+      })
+      return Number(seconds)
     },
   }
 }

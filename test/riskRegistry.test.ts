@@ -55,4 +55,23 @@ describe("RiskRegistry", function () {
       "OwnableUnauthorizedAccount",
     )
   })
+
+  it("defaults the delay window to 0 (relayer uses its own default)", async function () {
+    const { registry } = await setup()
+    expect(await registry.defaultDelayWindow()).to.equal(0)
+  })
+
+  it("lets the owner set the default delay window, emitting an event", async function () {
+    const { registry } = await setup()
+    await expect(registry.setDefaultDelayWindow(900)).to.emit(registry, "DefaultDelayWindowUpdated").withArgs(900)
+    expect(await registry.defaultDelayWindow()).to.equal(900)
+  })
+
+  it("rejects setDefaultDelayWindow from a non-owner", async function () {
+    const { registry, other } = await setup()
+    await expect(registry.connect(other).setDefaultDelayWindow(900)).to.be.revertedWithCustomError(
+      registry,
+      "OwnableUnauthorizedAccount",
+    )
+  })
 })

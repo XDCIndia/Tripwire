@@ -1,7 +1,11 @@
 import "./App.css"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
+import { PolicyChat } from "./components/PolicyChat.js"
+import { PolicyPanel } from "./components/PolicyPanel.js"
+import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
+import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { activeChain } from "./config.js"
 
 export function App() {
@@ -17,7 +21,11 @@ export function App() {
       <main className="grid">
         <SafeCard />
         <GuardCard />
+        <RiskFeedCard />
+        <PolicyPanel />
+        <SimulateAttackCard />
       </main>
+      <PolicyChat />
     </div>
   )
 }

@@ -23,6 +23,7 @@ const deployment = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "
 
 const RISK_REGISTRY_ABI = parseAbi([
   "function submitVerdict(bytes32 txHash, (uint8 status, uint8 score, uint256 releaseAt) verdict) external",
+  "function defaultDelayWindow() view returns (uint256)",
 ])
 
 async function main() {
@@ -57,6 +58,14 @@ async function main() {
         chain: null,
       })
       await publicClient.waitForTransactionReceipt({ hash })
+    },
+    async delayWindow() {
+      const seconds = await publicClient.readContract({
+        address: deployment.riskRegistryAddress,
+        abi: RISK_REGISTRY_ABI,
+        functionName: "defaultDelayWindow",
+      })
+      return Number(seconds)
     },
   })
 

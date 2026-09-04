@@ -11,9 +11,14 @@ function ruleResult(overrides: Partial<RuleEngineResult> = {}): RuleEngineResult
   return { score: 0, label: "low_risk", matchedSignals: [], ...overrides }
 }
 
-function mockClient(): { client: RiskRegistryClient; submitVerdict: ReturnType<typeof vi.fn> } {
+function mockClient(): {
+  client: RiskRegistryClient
+  submitVerdict: ReturnType<typeof vi.fn>
+  delayWindow: ReturnType<typeof vi.fn>
+} {
   const submitVerdict = vi.fn(async () => {})
-  return { client: { submitVerdict }, submitVerdict }
+  const delayWindow = vi.fn(async () => 0)
+  return { client: { submitVerdict, delayWindow }, submitVerdict, delayWindow }
 }
 
 describe("VerdictRelayer", function () {
@@ -66,7 +71,10 @@ describe("VerdictRelayer", function () {
     submitVerdict.mockResolvedValue(undefined)
 
     const sleeps: number[] = []
-    const relayer = new VerdictRelayer({ submitVerdict }, { sleep: async (ms) => void sleeps.push(ms) })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async (ms) => void sleeps.push(ms) },
+    )
 
     const verdict = await relayer.submitFast(TX_HASH, ruleResult({ score: 12, label: "low_risk" }))
 
@@ -81,7 +89,10 @@ describe("VerdictRelayer", function () {
       attempts.push(verdict)
       if (attempts.length < 2) throw new Error("connection reset")
     })
-    const relayer = new VerdictRelayer({ submitVerdict }, { sleep: async () => {} })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {} },
+    )
 
     await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
 
@@ -92,7 +103,10 @@ describe("VerdictRelayer", function () {
     const submitVerdict = vi.fn(async () => {
       throw new VerdictRevertedError(TX_HASH, "0xabc")
     })
-    const relayer = new VerdictRelayer({ submitVerdict }, { sleep: async () => {} })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {} },
+    )
 
     await expect(relayer.submitFast(TX_HASH, ruleResult())).rejects.toBeInstanceOf(VerdictRevertedError)
     expect(submitVerdict).toHaveBeenCalledTimes(1)
@@ -102,9 +116,50 @@ describe("VerdictRelayer", function () {
     const submitVerdict = vi.fn(async () => {
       throw new Error("RPC permanently down")
     })
-    const relayer = new VerdictRelayer({ submitVerdict }, { sleep: async () => {}, maxAttempts: 3 })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {}, maxAttempts: 3 },
+    )
 
     await expect(relayer.submitFast(TX_HASH, ruleResult())).rejects.toThrow("RPC permanently down")
     expect(submitVerdict).toHaveBeenCalledTimes(3)
+  })
+
+  it("applies the registry's owner-set default delay window to DELAYED verdicts", async function () {
+    const { client, delayWindow } = mockClient()
+    delayWindow.mockResolvedValue(900)
+    const relayer = new VerdictRelayer(client)
+    const before = Math.floor(Date.now() / 1000)
+
+    const verdict = await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
+
+    expect(verdict.status).toBe(RiskStatus.DELAYED)
+    expect(verdict.releaseAt).toBeGreaterThanOrEqual(before + 900)
+    expect(verdict.releaseAt).toBeLessThanOrEqual(before + 901)
+  })
+
+  it("falls back to the relayer's own default when the registry has no window configured (0)", async function () {
+    const { client, delayWindow } = mockClient()
+    delayWindow.mockResolvedValue(0)
+    const relayer = new VerdictRelayer(client)
+    const before = Math.floor(Date.now() / 1000)
+
+    const verdict = await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
+
+    expect(verdict.status).toBe(RiskStatus.DELAYED)
+    expect(verdict.releaseAt).toBeGreaterThanOrEqual(before + 600)
+    expect(verdict.releaseAt).toBeLessThanOrEqual(before + 601)
+  })
+
+  it("caches the delay window and refreshes it at most once a minute", async function () {
+    const { client, delayWindow } = mockClient()
+    delayWindow.mockResolvedValue(600)
+    const relayer = new VerdictRelayer(client)
+
+    await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
+    await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
+    await relayer.submitFinal(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }), undefined)
+
+    expect(delayWindow).toHaveBeenCalledTimes(1)
   })
 })
