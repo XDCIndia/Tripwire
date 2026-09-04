@@ -127,6 +127,12 @@
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
+.pill-warn {
+  background: rgba(217, 119, 6, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.4);
+}
+
 .not-configured {
   font-size: 14px;
   color: var(--text);
