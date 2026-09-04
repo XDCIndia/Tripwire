@@ -6,7 +6,7 @@ import { NotConfigured } from "./NotConfigured.js"
 
 export function SafeCard() {
   const { safeAddress } = deployment
-  const { data: balance, isLoading } = useBalance({
+  const { data: balance, isPending } = useBalance({
     address: safeAddress,
     chainId: activeChain.id,
     query: { enabled: Boolean(safeAddress) },
@@ -25,7 +25,7 @@ export function SafeCard() {
           <dd>{activeChain.name}</dd>
           <dt>Balance</dt>
           <dd>
-            {isLoading ? "Loading…" : balance ? `${formatUnits(balance.value, balance.decimals)} ${balance.symbol}` : "—"}
+            {isPending ? "Loading…" : balance ? `${formatUnits(balance.value, balance.decimals)} ${balance.symbol}` : "—"}
           </dd>
         </dl>
       )}

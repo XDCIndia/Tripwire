@@ -1,3 +1,5 @@
+import type { SimulationSignals } from "./simulationSignals.js"
+
 /**
  * Deterministic, dependency-free risk scoring - the safety net this whole
  * system leans on when the LLM step (#12) is slow, erroring, or just not
@@ -6,6 +8,10 @@
  * responsible for actually knowing the wallet's history (#8's watcher) and
  * the counterparty's reputation (#10's blacklist lookup, on-chain indexers,
  * etc.) - this module only combines signals into a score.
+ *
+ * The optional `simulation` signals (issue #44) are the same deal: the
+ * caller runs the fork simulation and hands in the findings; scoring them
+ * stays pure. Type-only import keeps this module runtime-dependency-free.
  */
 
 export interface RuleEngineInput {
@@ -25,6 +31,13 @@ export interface RuleEngineInput {
   counterpartyBlacklist: BlacklistStatus
   /** This wallet's historical p95 transaction value, in wei. 0n if there isn't enough history yet. */
   historicalP95Value: bigint
+  /**
+   * Fork-simulation findings for this transaction (issue #44). Omitting it
+   * reproduces pre-#44 scoring exactly; every field is a conservative
+   * escalation, and `simulationFailed` exists so an unavailable fork
+   * degrades to elevated risk rather than to silence.
+   */
+  simulation?: SimulationSignals
 }
 
 export type BlacklistStatus = "malicious" | "clean" | "unknown"
@@ -55,6 +68,13 @@ const WEIGHTS = {
   UNVERIFIED_OR_FRESH_CONTRACT: 25,
   BLACKLISTED_COUNTERPARTY: 60,
   ABOVE_HISTORICAL_P95: 15,
+  // Issue #44 - fork-simulation findings. Every one escalates; there is no
+  // "simulation looked fine" bonus that could mute the calldata signals.
+  SIMULATION_FAILED: 35,
+  CALL_REVERTED: 40,
+  HIDDEN_NATIVE_OUTFLOW: 35,
+  UNEXPECTED_ALLOWANCE_INCREASE: 45,
+  OWNERSHIP_TRANSFER: 40,
 } as const
 
 const HIGH_RISK_THRESHOLD = 70
@@ -113,6 +133,30 @@ export function scoreTransaction(input: RuleEngineInput): RuleEngineResult {
   if (input.historicalP95Value > 0n && input.value > input.historicalP95Value) {
     score += WEIGHTS.ABOVE_HISTORICAL_P95
     matchedSignals.push("transaction value is above this wallet's historical p95 spend")
+  }
+
+  const sim = input.simulation
+  if (sim) {
+    if (sim.simulationFailed) {
+      score += WEIGHTS.SIMULATION_FAILED
+      matchedSignals.push("fork simulation could not run: unverified, treated as elevated risk (never auto-approved)")
+    }
+    if (sim.callReverted) {
+      score += WEIGHTS.CALL_REVERTED
+      matchedSignals.push("simulation: the call reverts on a fork - the calldata does not do what it claims")
+    }
+    if (sim.hiddenNativeOutflow) {
+      score += WEIGHTS.HIDDEN_NATIVE_OUTFLOW
+      matchedSignals.push("simulation: native balance drops by more than the stated value - hidden outflow")
+    }
+    if (sim.unexpectedAllowanceIncrease) {
+      score += WEIGHTS.UNEXPECTED_ALLOWANCE_INCREASE
+      matchedSignals.push("simulation: an allowance grew on a token/spender the calldata never discloses")
+    }
+    if (sim.ownershipTransferDetected) {
+      score += WEIGHTS.OWNERSHIP_TRANSFER
+      matchedSignals.push("simulation: a watched NFT leaves the wallet inside this transaction")
+    }
   }
 
   score = Math.min(score, 100)
