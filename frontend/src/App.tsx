@@ -4,6 +4,7 @@ import { GuardCard } from "./components/GuardCard.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
+import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { activeChain } from "./config.js"
 
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
         <GuardCard />
         <RiskFeedCard />
         <PolicyPanel />
+        <SimulateAttackCard />
       </main>
     </div>
   )
