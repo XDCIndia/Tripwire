@@ -127,6 +127,12 @@
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
+.pill-warn {
+  background: rgba(217, 119, 6, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.4);
+}
+
 .not-configured {
   font-size: 14px;
   color: var(--text);
@@ -509,6 +515,48 @@
 }
 
 .nonce-description {
+/* Issue #44: simulation impact card */
+
+.sim-entry {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.sim-entry:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.sim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sim-warning {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--warn, #d97706);
+}
+
+.sim-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+/* Issue #82: Transaction State Machine */
+
+.state-card {
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+.state-description {
   font-size: 13px;
   color: var(--text);
   opacity: 0.8;
@@ -516,6 +564,7 @@
 }
 
 .nonce-controls {
+.state-controls {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
@@ -525,6 +574,10 @@
   font-family: var(--sans);
   font-size: 13px;
   padding: 6px 14px;
+.state-controls button {
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 5px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -543,6 +596,17 @@
 }
 
 .nonce-hint {
+.state-controls button:hover {
+  border-color: var(--accent-border);
+}
+
+.state-btn-active {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.4) !important;
+  color: #0ea5e9;
+}
+
+.state-hint {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 12px;
@@ -703,6 +767,252 @@
 .nonce-nav-btn {
   font-family: var(--sans);
   font-size: 12px;
+/* Status header */
+.state-status {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.state-status-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.state-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.state-current {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.state-terminal-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.state-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.state-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.state-meta-label {
+  color: var(--muted);
+  min-width: 70px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.state-meta-value {
+  color: var(--text-h);
+}
+
+.state-sync {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* State badge */
+.state-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.03em;
+}
+
+.state-badge-small {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.state-badge-terminal {
+  opacity: 0.7;
+}
+
+/* State flow diagram */
+.state-flow {
+  margin-bottom: 14px;
+}
+
+.state-flow h3,
+.state-history h3,
+.state-rejection h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.state-flow-main {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.state-flow-step {
+  display: flex;
+  align-items: center;
+}
+
+.state-flow-node {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.state-flow-active {
+  font-weight: 700;
+}
+
+.state-flow-terminal {
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.3);
+}
+
+.state-flow-connector {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 2px;
+}
+
+.state-flow-failures {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+
+.state-flow-failure {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.state-flow-failure-from {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.state-flow-failure-arrow {
+  color: var(--muted);
+}
+
+.state-flow-failure-to {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* Transition history */
+.state-history {
+  margin-bottom: 14px;
+}
+
+.state-transition {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.state-transition-index {
+  font-family: var(--mono);
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.state-transition-from {
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.state-transition-arrow {
+  color: var(--muted);
+}
+
+.state-transition-to {
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.state-transition-version {
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.state-transition-time {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.state-transition-reason {
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 10px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Rejection demo */
+.state-rejection {
+  margin-top: 14px;
+}
+
+.state-rejection-desc {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 8px;
+}
+
+.state-rejection-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.state-rejection-buttons button {
+  font-family: var(--sans);
+  font-size: 11px;
   padding: 4px 10px;
   border-radius: 4px;
   border: 1px solid var(--border);
@@ -732,11 +1042,52 @@
 }
 
 .nonce-empty {
+}
+
+.state-rejection-buttons button:hover {
+  border-color: var(--accent-border);
+}
+
+.state-rejection-result {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.state-rejection-accepted {
+  background: rgba(22, 163, 74, 0.06);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.state-rejection-rejected {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.state-rejection-status {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.state-rejection-accepted .state-rejection-status { color: #16a34a; }
+.state-rejection-rejected .state-rejection-status { color: #dc2626; }
+
+.state-rejection-reason {
+  color: var(--text);
+  opacity: 0.8;
+  font-size: 11px;
+}
+
+.state-empty {
   font-size: 13px;
   color: var(--text);
   opacity: 0.7;
 }
 
 .nonce-empty p {
+.state-empty p {
   margin: 0;
 }

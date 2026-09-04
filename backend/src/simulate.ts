@@ -20,6 +20,12 @@ export interface WatchedToken {
   spender: `0x${string}`
 }
 
+/** An ERC-721 the Safe owns whose ownership the simulation should watch. */
+export interface WatchedNft {
+  address: `0x${string}`
+  tokenId: bigint
+}
+
 export interface SimulateTxInput {
   /** The account whose state we're simulating changes for - the Safe. */
   from: `0x${string}`
@@ -28,6 +34,8 @@ export interface SimulateTxInput {
   data: `0x${string}`
   /** Tokens the calldata might touch - the caller decides which are worth checking (e.g. the token this approve/setApprovalForAll targets). */
   watchTokens?: WatchedToken[]
+  /** NFTs owned by `from` whose ownership the simulation should watch - catches asset transfers hidden inside seemingly benign calldata. */
+  watchNfts?: WatchedNft[]
 }
 
 export interface AllowanceDiff {
@@ -39,11 +47,21 @@ export interface AllowanceDiff {
   after: bigint
 }
 
+/** An ERC-721 whose owner changed during simulation - an asset leaving (or arriving at) the wallet. */
+export interface OwnershipChange {
+  token: `0x${string}`
+  tokenId: bigint
+  ownerBefore: `0x${string}`
+  ownerAfter: `0x${string}`
+}
+
 export interface SimulationDiff {
   balanceBefore: bigint
   balanceAfter: bigint
   /** Only entries where before !== after - a token nothing changed for isn't worth reporting. */
   newAllowances: AllowanceDiff[]
+  /** ERC-721s watched via `watchNfts` whose owner changed. Empty when nothing moved. */
+  ownershipChanges: OwnershipChange[]
   /** False if the inner call reverted - the calldata doesn't even do what it claims to. */
   success: boolean
 }
@@ -64,6 +82,8 @@ export interface ForkClient {
   getBalance(address: `0x${string}`): Promise<bigint>
   readErc20Allowance(token: `0x${string}`, owner: `0x${string}`, spender: `0x${string}`): Promise<bigint>
   readIsApprovedForAll(token: `0x${string}`, owner: `0x${string}`, spender: `0x${string}`): Promise<boolean>
+  /** `ownerOf(uint256)` on an ERC-721. What it returns for a burned/never-minted id is the token's own behavior; callers treat a thrown read as "unchanged". */
+  readErc721Owner(token: `0x${string}`, tokenId: bigint): Promise<`0x${string}`>
   snapshot(): Promise<string>
   revert(snapshotId: string): Promise<void>
   /** Executes the call as `input.from` against current chain state. Does not itself snapshot or revert. */
@@ -89,13 +109,24 @@ async function readAllowancesFor(
   return values
 }
 
+/** Keyed `${token}:${tokenId}` so before/after pairs line up even across mixed collections. */
+async function readNftOwnersFor(client: ForkClient, nfts: WatchedNft[]): Promise<Map<string, `0x${string}`>> {
+  const owners = new Map<string, `0x${string}`>()
+  for (const nft of nfts) {
+    owners.set(`${nft.address}:${nft.tokenId}`, await client.readErc721Owner(nft.address, nft.tokenId))
+  }
+  return owners
+}
+
 export async function simulateTransaction(client: ForkClient, input: SimulateTxInput): Promise<SimulationDiff> {
   const watchTokens = input.watchTokens ?? []
+  const watchNfts = input.watchNfts ?? []
   const snapshotId = await client.snapshot()
 
   try {
     const balanceBefore = await client.getBalance(input.from)
     const before = await readAllowancesFor(client, input.from, watchTokens)
+    const nftOwnersBefore = await readNftOwnersFor(client, watchNfts)
 
     const { success } = await client.execute({ from: input.from, to: input.to, value: input.value, data: input.data })
 
@@ -103,6 +134,7 @@ export async function simulateTransaction(client: ForkClient, input: SimulateTxI
     // this is the ordering the module doc comment warns about.
     const balanceAfter = await client.getBalance(input.from)
     const after = await readAllowancesFor(client, input.from, watchTokens)
+    const nftOwnersAfter = await readNftOwnersFor(client, watchNfts)
 
     const newAllowances: AllowanceDiff[] = []
     for (const t of watchTokens) {
@@ -114,7 +146,17 @@ export async function simulateTransaction(client: ForkClient, input: SimulateTxI
       }
     }
 
-    return { balanceBefore, balanceAfter, newAllowances, success }
+    const ownershipChanges: OwnershipChange[] = []
+    for (const nft of watchNfts) {
+      const key = `${nft.address}:${nft.tokenId}`
+      const ownerBefore = nftOwnersBefore.get(key)
+      const ownerAfter = nftOwnersAfter.get(key)
+      if (ownerBefore !== undefined && ownerAfter !== undefined && ownerBefore !== ownerAfter) {
+        ownershipChanges.push({ token: nft.address, tokenId: nft.tokenId, ownerBefore, ownerAfter })
+      }
+    }
+
+    return { balanceBefore, balanceAfter, newAllowances, ownershipChanges, success }
   } finally {
     await client.revert(snapshotId)
   }
