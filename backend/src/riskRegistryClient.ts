@@ -1,4 +1,4 @@
-import { type Chain, createWalletClient, http, parseAbi } from "viem"
+import { type Chain, createPublicClient, createWalletClient, http, parseAbi } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import type { RiskRegistryClient } from "./relayer.js"
@@ -24,26 +24,32 @@ export interface RiskRegistryClientConfig {
  * `@safe-global/api-kit`: the relayer's actual verdict-combining logic is
  * fully tested with a mock; this file is the untestable-without-a-live-chain
  * remainder, kept as small as possible.
+ *
+ * `writeContract` only returns a hash - it never confirms the transaction
+ * landed. A relayer whose whole point is "a seen transaction is never left
+ * UNSCORED" must not report success on a reverted or dropped submission, so
+ * every call waits for its receipt and throws on anything but success.
+ * Waiting per call also serializes nonce assignment across submissions from
+ * the same key, which concurrent fire-and-forget writes would race on.
  */
 export function createRiskRegistryClient(config: RiskRegistryClientConfig): RiskRegistryClient {
   const account = privateKeyToAccount(config.relayerPrivateKey)
-  const walletClient = createWalletClient({
-    account,
-    chain: config.chain,
-    transport: http(config.rpcUrl),
-  })
+  const transport = http(config.rpcUrl)
+  const walletClient = createWalletClient({ account, chain: config.chain, transport })
+  const publicClient = createPublicClient({ chain: config.chain, transport })
 
   return {
     async submitVerdict(txHash: `0x${string}`, verdict: OnChainVerdict): Promise<void> {
-      await walletClient.writeContract({
+      const hash = await walletClient.writeContract({
         address: config.contractAddress,
         abi: RISK_REGISTRY_ABI,
         functionName: "submitVerdict",
-        args: [
-          txHash,
-          { status: verdict.status, score: verdict.score, releaseAt: BigInt(verdict.releaseAt) },
-        ],
+        args: [txHash, { status: verdict.status, score: verdict.score, releaseAt: BigInt(verdict.releaseAt) }],
       })
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== "success") {
+        throw new Error(`submitVerdict for ${txHash} reverted (tx ${hash})`)
+      }
     },
   }
 }
