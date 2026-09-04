@@ -343,6 +343,8 @@ export class RiskOrchestrator {
       value: tx.value,
       isFirstSeenCounterparty: false,
       isUnverifiedOrFreshContract: false,
+      // This deterministic path has no GoPlus lookup (#10) - "unknown" is the
+      // honest value: adds nothing to the score, never read as "clean".
       counterpartyBlacklist: "unknown",
       historicalP95Value: 0n,
     })

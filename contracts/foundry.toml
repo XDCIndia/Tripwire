@@ -1,0 +1,59 @@
+[profile.default]
+src = "."
+test = "test"
+out = "out"
+libs = ["lib"]
+solc = "0.8.28"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+# With src="." forge scans lib/ for roots too, so every dependency's own
+# test/example files become compilation targets whether or not our
+# contracts import them. This project's zodiac-core submodule is
+# deliberately pinned to v2.0.1 (see foundry.lock) - the exact version
+# Hardhat resolves via npm - specifically so TripwireGuard's real
+# checkTransaction override (Enum.Operation, from @gnosis.pm/safe-contracts)
+# type-checks identically for both toolchains against the *same* BaseGuard
+# signature. A newer zodiac-core (v4 renamed the operation type and
+# reworked Module's Ownable init pattern) would require every
+# BaseGuard/Module consumer to fork behavior per toolchain - not worth it
+# for a checkTransaction override this small and this security-critical.
+skip = [
+  "lib/safe-contracts/*",
+  "lib/openzeppelin-contracts/test/*",
+  "lib/openzeppelin-contracts/contracts/mocks/*",
+  "lib/openzeppelin-contracts/fv/*",
+  "lib/openzeppelin-contracts/lib/*",
+  "lib/zodiac-core/contracts/test/*",
+  # Only guard/BaseGuard.sol + interfaces/*.sol (what it imports) are
+  # actually needed. core/* (Module, Modifier) and factory/* need
+  # @openzeppelin/contracts-upgradeable, which isn't installed - and
+  # guard/Guardable.sol needs it too. None of these are reachable from
+  # TripwireGuard.sol or RiskRegistry.sol.
+  "lib/zodiac-core/contracts/core/*",
+  "lib/zodiac-core/contracts/factory/*",
+  "lib/zodiac-core/contracts/guard/Guardable.sol",
+  "test/SafeImports.sol",
+  # MyModule.sol is the original, unused Zodiac starter-kit tutorial
+  # sample (Hardhat-only: test/myModule.test.ts, deploy/*_module.ts) - it
+  # imports zodiac-core's Module.sol (core/*, skipped above). Not a real
+  # Tripwire contract either way.
+  "MyModule.sol",
+]
+
+[lint]
+# Post-build lint over the full dependency tree takes minutes and adds
+# nothing in CI; run `forge lint` explicitly when touching Solidity.
+lint_on_build = false
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+quote_style = "double"
+number_underscore = "thousands"
+multiline_func_header = "params_first_multi"
+sort_imports = true
+
+# See contracts/README.md for the full end-to-end rehearsal flow.

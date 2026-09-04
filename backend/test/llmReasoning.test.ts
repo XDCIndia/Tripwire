@@ -16,6 +16,7 @@ const SIM_DIFF: SimulationDiff = {
   balanceBefore: 10n ** 18n,
   balanceAfter: 10n ** 18n - 5n * 10n ** 17n,
   success: true,
+  ownershipChanges: [],
   newAllowances: [
     {
       token: "0xToken000000000000000000000000000000000000",
