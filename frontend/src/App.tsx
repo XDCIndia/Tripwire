@@ -6,6 +6,7 @@ import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { EvidenceExplorerCard } from "./components/EvidenceExplorerCard.js"
 import { GuardCard } from "./components/GuardCard.js"
+import { TransactionIntegrityCard } from "./components/TransactionIntegrityCard.js"
 import { TransactionDiffCard } from "./components/TransactionDiffCard.js"
 import { NonceConflictCard } from "./components/NonceConflictCard.js"
 import { RiskDecisionCard } from "./components/RiskDecisionCard.js"
@@ -35,6 +36,7 @@ export function App() {
         <SecurityHealthCard />
         <VerificationStatusCard />
         <SafeCard />
+        <TransactionIntegrityCard />
         <GuardCard />
         <AuditCard />
         <RiskFeedCard />
