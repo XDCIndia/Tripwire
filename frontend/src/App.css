@@ -563,26 +563,20 @@
   margin: 0 0 14px;
 }
 
-<<<<<<< HEAD
 .pattern-controls {
 .state-controls {
-=======
 .rdc-controls {
->>>>>>> fork/main
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-<<<<<<< HEAD
 .pattern-controls button {
   font-family: var(--sans);
   font-size: 13px;
   padding: 6px 14px;
 .state-controls button {
-=======
 .rdc-controls button {
->>>>>>> fork/main
   font-family: var(--sans);
   font-size: 12px;
   padding: 5px 12px;
@@ -593,7 +587,6 @@
   cursor: pointer;
 }
 
-<<<<<<< HEAD
 .pattern-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -606,9 +599,7 @@
 
 .pattern-hint {
 .state-controls button:hover {
-=======
 .rdc-controls button:hover {
->>>>>>> fork/main
   border-color: var(--accent-border);
 }
 
@@ -624,7 +615,6 @@
   margin: 0 0 12px;
 }
 
-<<<<<<< HEAD
 .pattern-summary {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -710,10 +700,8 @@
   font-size: 12px;
 /* Status header */
 .state-status {
-=======
 /* Sections */
 .rdc-section {
->>>>>>> fork/main
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 10px;
@@ -1157,7 +1145,6 @@
   cursor: pointer;
 }
 
-<<<<<<< HEAD
 .pattern-expand-btn:hover {
   border-color: var(--accent-border);
 }
@@ -1307,9 +1294,7 @@
 
 .pattern-empty {
 .state-rejection-buttons button:hover {
-=======
 .verify-refresh:hover:not(:disabled) {
->>>>>>> fork/main
   border-color: var(--accent-border);
 }
 
@@ -1353,11 +1338,9 @@
   opacity: 0.7;
 }
 
-<<<<<<< HEAD
 .pattern-empty p {
 .state-empty p {
   margin: 0;
-=======
 .verify-label {
   display: flex;
   align-items: center;
@@ -1455,5 +1438,4 @@
 
 .verify-unprotected .verify-protection-value {
   color: #dc2626;
->>>>>>> fork/main
 }
