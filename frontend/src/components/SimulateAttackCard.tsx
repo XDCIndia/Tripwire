@@ -21,7 +21,8 @@ type FireState = "idle" | "firing" | "fired" | "error"
 
 const configuredTrigger = import.meta.env.VITE_ATTACK_TRIGGER_URL as string | undefined
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined
-const triggerUrl: string | undefined = configuredTrigger ?? (backendUrl ? `${backendUrl}/simulate/attack` : undefined)
+/** VITE_ATTACK_TRIGGER_URL wins; otherwise POST to /tx/propose on the orchestrator. */
+const triggerUrl: string | undefined = configuredTrigger ?? (backendUrl ? `${backendUrl}/tx/propose` : undefined)
 
 const COOLDOWN_MS = 5000
 
