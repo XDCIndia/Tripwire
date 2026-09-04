@@ -2,9 +2,7 @@ import { type Chain, createPublicClient, createTestClient, http, parseAbi } from
 
 import type { ForkClient } from "./simulate.js"
 
-const ERC20_ALLOWANCE_ABI = parseAbi([
-  "function allowance(address owner, address spender) view returns (uint256)",
-])
+const ERC20_ALLOWANCE_ABI = parseAbi(["function allowance(address owner, address spender) view returns (uint256)"])
 const NFT_IS_APPROVED_FOR_ALL_ABI = parseAbi([
   "function isApprovedForAll(address owner, address operator) view returns (bool)",
 ])
@@ -22,7 +20,9 @@ export interface AnvilForkClientConfig {
  * being a contract, it doesn't have one of anyway).
  */
 export function createAnvilForkClient(config: AnvilForkClientConfig): ForkClient {
-  const transport = http(config.rpcUrl)
+  // Hard ceiling on any single RPC round trip - a hung fork must fail the
+  // simulation step, not stall the pipeline that called it.
+  const transport = http(config.rpcUrl, { timeout: 10_000 })
   const publicClient = createPublicClient({ chain: config.chain, transport })
   const testClient = createTestClient({ mode: "anvil", chain: config.chain, transport })
 

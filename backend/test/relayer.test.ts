@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
 import type { RiskRegistryClient } from "../src/relayer.js"
-import { VerdictRelayer } from "../src/relayer.js"
+import { VerdictRelayer, VerdictRevertedError } from "../src/relayer.js"
 import type { RuleEngineResult } from "../src/ruleEngine.js"
 import { RiskStatus } from "../src/verdict.js"
 
@@ -62,6 +62,67 @@ describe("VerdictRelayer", function () {
       const verdict = await relayer.submitFast(TX_HASH, ruleResult({ label }))
       expect(verdict.status).not.toBe(RiskStatus.UNSCORED)
     }
+  })
+
+  it("retries transient submission failures with backoff, then succeeds", async function () {
+    const submitVerdict = vi.fn<(_txHash: string, _verdict: unknown) => Promise<void>>()
+    submitVerdict.mockRejectedValueOnce(new Error("connection reset"))
+    submitVerdict.mockRejectedValueOnce(new Error("connection reset"))
+    submitVerdict.mockResolvedValue(undefined)
+
+    const sleeps: number[] = []
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async (ms) => void sleeps.push(ms) },
+    )
+
+    const verdict = await relayer.submitFast(TX_HASH, ruleResult({ score: 12, label: "low_risk" }))
+
+    expect(submitVerdict).toHaveBeenCalledTimes(3)
+    expect(sleeps).toEqual([500, 1000])
+    expect(verdict.status).toBe(RiskStatus.LOW_RISK)
+  })
+
+  it("resubmits the identical verdict on retry - a retried verdict can never disagree with the first attempt", async function () {
+    const attempts: unknown[] = []
+    const submitVerdict = vi.fn(async (_txHash: string, verdict: unknown) => {
+      attempts.push(verdict)
+      if (attempts.length < 2) throw new Error("connection reset")
+    })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {} },
+    )
+
+    await relayer.submitFast(TX_HASH, ruleResult({ score: 40, label: "medium_risk" }))
+
+    expect(attempts[0]).toEqual(attempts[1])
+  })
+
+  it("does not retry a mined revert - a deterministic failure fails fast", async function () {
+    const submitVerdict = vi.fn(async () => {
+      throw new VerdictRevertedError(TX_HASH, "0xabc")
+    })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {} },
+    )
+
+    await expect(relayer.submitFast(TX_HASH, ruleResult())).rejects.toBeInstanceOf(VerdictRevertedError)
+    expect(submitVerdict).toHaveBeenCalledTimes(1)
+  })
+
+  it("gives up after maxAttempts and surfaces the last error", async function () {
+    const submitVerdict = vi.fn(async () => {
+      throw new Error("RPC permanently down")
+    })
+    const relayer = new VerdictRelayer(
+      { submitVerdict, delayWindow: vi.fn(async () => 0) },
+      { sleep: async () => {}, maxAttempts: 3 },
+    )
+
+    await expect(relayer.submitFast(TX_HASH, ruleResult())).rejects.toThrow("RPC permanently down")
+    expect(submitVerdict).toHaveBeenCalledTimes(3)
   })
 
   it("applies the registry's owner-set default delay window to DELAYED verdicts", async function () {

@@ -1,124 +1,106 @@
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
+import { keccak256, toHex } from "viem"
+
+import type { ProcessingStatus, ProposedTx, RiskOrchestrator } from "./riskOrchestrator.js"
+
 /**
- * Issue #102: Orchestrator HTTP server
+ * Intake + status API for the risk orchestrator (issue #45: "expose
+ * transaction status and verdict through an API for the dashboard" and
+ * "a backend endpoint for proposed Safe transactions"). Read-only on
+ * state plus a single intake endpoint:
  *
- * Minimal HTTP server that exposes the routes the frontend dashboard
- * expects:
- *   GET  /health       → { ok: true }
- *   GET  /tx           → risk feed (array of tx verdicts, newest first)
- *   POST /tx/propose   → accept a new transaction for risk evaluation
+ *   POST /tx/propose        { to, value, data, txHash? } -> 202 { txHash, status, duplicate }
+ *   GET  /tx                ?status=&limit= -> newest-first processing states
+ *   GET  /tx/:txHash/status -> full processing state incl. canonical verdict
+ *   GET  /health
  *
- * Sits in front of the existing watcher + rule-engine pipeline so the
- * frontend can poll for verdicts and trigger the attack simulation.
+ * When the client omits txHash, a content hash over (to, value, data) is
+ * derived so replays of the identical proposal dedupe naturally.
  */
 
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
-
-// ─── In-memory verdict store ─────────────────────────────────────────
-
-export interface TxVerdict {
-  txHash: string
-  status: "low_risk" | "medium_risk" | "high_risk" | "frozen" | "pending"
-  score?: number
-  action?: "allow" | "delay" | "block" | "freeze"
-  reasons?: string[]
-  at: string
-}
-
-const verdicts: TxVerdict[] = []
-const MAX_VERDICTS = 200
-
-export function addVerdict(verdict: TxVerdict): void {
-  verdicts.unshift(verdict)
-  if (verdicts.length > MAX_VERDICTS) verdicts.length = MAX_VERDICTS
-}
-
-export function getVerdicts(): TxVerdict[] {
-  return verdicts
-}
-
-// ─── HTTP helpers ────────────────────────────────────────────────────
-
-function json(res: ServerResponse, status: number, body: unknown): void {
+function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { "content-type": "application/json" })
-  res.end(JSON.stringify(body))
+  res.end(JSON.stringify(body, (_key, v: unknown) => (typeof v === "bigint" ? v.toString() : v)))
 }
 
-async function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []
-    req.on("data", (c) => chunks.push(c))
-    req.on("end", () => resolve(Buffer.concat(chunks).toString()))
-    req.on("error", reject)
+function deriveTxHash(to: string, value: string, data: string): string {
+  return keccak256(toHex(`${to}|${value}|${data}`))
+}
+
+export function createOrchestratorHttpServer(orchestrator: RiskOrchestrator): Server {
+  return createServer((req, res) => {
+    void (async () => {
+      const url = new URL(req.url ?? "/", "http://localhost")
+
+      if (req.method === "GET" && url.pathname === "/health") {
+        sendJson(res, 200, { ok: true, pending: orchestrator.pendingCount })
+        return
+      }
+
+      if (req.method === "POST" && url.pathname === "/tx/propose") {
+        let body: unknown
+        try {
+          body = JSON.parse(await readBody(req))
+        } catch {
+          sendJson(res, 400, { error: "invalid JSON body" })
+          return
+        }
+        const parsed = body as Partial<ProposedTx> & { to?: string; value?: string | number }
+        if (!parsed.to || parsed.value === undefined || !parsed.data) {
+          sendJson(res, 400, { error: "to, value, and data are required" })
+          return
+        }
+        const tx: ProposedTx = {
+          txHash: parsed.txHash ?? deriveTxHash(parsed.to, String(parsed.value), parsed.data),
+          to: parsed.to,
+          value: BigInt(parsed.value),
+          data: parsed.data,
+        }
+        const result = await orchestrator.propose(tx)
+        sendJson(res, 202, result)
+        return
+      }
+
+      if (req.method === "GET" && url.pathname === "/tx") {
+        const status = url.searchParams.get("status") as ProcessingStatus | null
+        const limit = Number(url.searchParams.get("limit"))
+        sendJson(
+          res,
+          200,
+          await orchestrator.list({
+            status: status ?? undefined,
+            limit: Number.isFinite(limit) && limit > 0 ? limit : undefined,
+          }),
+        )
+        return
+      }
+
+      const statusMatch = /^\/tx\/(0x[a-fA-F0-9]+)\/status$/.exec(url.pathname)
+      if (req.method === "GET" && statusMatch) {
+        const state = await orchestrator.status(statusMatch[1])
+        if (!state) {
+          sendJson(res, 404, { error: "unknown transaction", txHash: statusMatch[1] })
+          return
+        }
+        sendJson(res, 200, state)
+        return
+      }
+
+      sendJson(res, 404, { error: "not found" })
+    })().catch((err: unknown) => {
+      sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) })
+    })
   })
 }
 
-// ─── Request handler ─────────────────────────────────────────────────
-
-async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-  const { method, url } = req
-
-  // CORS headers for frontend dev server
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "content-type")
-
-  if (method === "OPTIONS") {
-    res.writeHead(204)
-    res.end()
-    return
-  }
-
-  // GET /health
-  if (method === "GET" && url === "/health") {
-    json(res, 200, { ok: true, verdicts: verdicts.length })
-    return
-  }
-
-  // GET /tx — risk feed
-  if (method === "GET" && url === "/tx") {
-    json(res, 200, verdicts)
-    return
-  }
-
-  // POST /tx/propose — accept a new transaction
-  if (method === "POST" && url === "/tx/propose") {
-    try {
-      const body = JSON.parse(await readBody(req)) as {
-        txHash?: string
-        to?: string
-        data?: string
-        value?: string
-      }
-
-      const txHash = body.txHash ?? `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`
-
-      // Add as pending verdict — the watcher pipeline will score it
-      addVerdict({
-        txHash,
-        status: "pending",
-        at: new Date().toISOString(),
-      })
-
-      json(res, 201, { ok: true, txHash, message: "Transaction submitted for risk evaluation" })
-    } catch {
-      json(res, 400, { ok: false, error: "Invalid JSON body" })
-    }
-    return
-  }
-
-  // 404
-  json(res, 404, { ok: false, error: "Not found" })
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let data = ""
+    req.on("data", (chunk: Buffer) => {
+      data += chunk.toString("utf8")
+      if (data.length > 1_000_000) reject(new Error("body too large"))
+    })
+    req.on("end", () => resolve(data))
+    req.on("error", reject)
+  })
 }
-
-// ─── Server startup ──────────────────────────────────────────────────
-
-const PORT = Number(process.env.ORCHESTRATOR_PORT ?? 3001)
-
-const server = createServer((req, res) => {
-  void handleRequest(req, res)
-})
-
-server.listen(PORT, () => {
-  console.log(`[orchestrator] listening on http://localhost:${PORT}`)
-  console.log(`[orchestrator] routes: GET /health, GET /tx, POST /tx/propose`)
-})
