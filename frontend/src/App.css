@@ -421,3 +421,83 @@
   font-size: 13px;
   color: #16a34a;
 }
+
+/* PolicyChat */
+.policy-chat {
+  margin-top: 24px;
+}
+
+.policy-description {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.policy-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.policy-input {
+  flex: 1;
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  outline: none;
+}
+
+.policy-input:focus {
+  border-color: var(--accent-border);
+}
+
+.policy-parse-btn,
+.policy-confirm-btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.policy-parse-btn:hover,
+.policy-confirm-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.policy-parse-btn:disabled,
+.policy-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.policy-preview {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.policy-preview h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 12px;
+}
+
+.policy-actions {
+  margin-top: 16px;
+}
+
+.policy-note {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 12px;
+}
