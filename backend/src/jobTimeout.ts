@@ -84,7 +84,7 @@ export function withJobTimeout<T>(
  * cancelled. PROCESSING jobs have their worker signaled via AbortController.
  */
 export type CancelResult =
-  | { cancelled: true; jobId: string; previousStatus: JobStatus }
+  | { cancelled: true; jobId: string; previousStatus: JobStatus; reason?: undefined }
   | { cancelled: false; reason: string }
 
 export function cancelJob(
