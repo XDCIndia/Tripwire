@@ -1,12 +1,15 @@
 import { type Chain, createPublicClient, createWalletClient, http, parseAbi } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
-import type { RiskRegistryClient } from "./relayer.js"
+import { VerdictRevertedError, type RiskRegistryClient } from "./relayer.js"
 import type { OnChainVerdict } from "./verdict.js"
 
 const RISK_REGISTRY_ABI = parseAbi([
   "function submitVerdict(bytes32 txHash, (uint8 status, uint8 score, uint256 releaseAt) verdict) external",
 ])
+
+/** Hard ceiling on any single RPC round trip - a hung endpoint must fail, not stall the pipeline. */
+const RPC_TIMEOUT_MS = 10_000
 
 export interface RiskRegistryClientConfig {
   /** The chain the RiskRegistry contract is deployed on, e.g. from `viem/chains` (sepolia), or a custom XDC Apothem definition. */
@@ -34,7 +37,7 @@ export interface RiskRegistryClientConfig {
  */
 export function createRiskRegistryClient(config: RiskRegistryClientConfig): RiskRegistryClient {
   const account = privateKeyToAccount(config.relayerPrivateKey)
-  const transport = http(config.rpcUrl)
+  const transport = http(config.rpcUrl, { timeout: RPC_TIMEOUT_MS })
   const walletClient = createWalletClient({ account, chain: config.chain, transport })
   const publicClient = createPublicClient({ chain: config.chain, transport })
 
@@ -48,7 +51,9 @@ export function createRiskRegistryClient(config: RiskRegistryClientConfig): Risk
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       if (receipt.status !== "success") {
-        throw new Error(`submitVerdict for ${txHash} reverted (tx ${hash})`)
+        // Typed so the relayer can tell "deterministic revert, don't retry"
+        // apart from "transient RPC failure, retry" - see relayer.ts.
+        throw new VerdictRevertedError(txHash, hash)
       }
     },
   }
