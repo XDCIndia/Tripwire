@@ -178,6 +178,13 @@ contract TripwireGuard is BaseGuard, Ownable {
         if (v.status == IRiskRegistry.Status.UNSCORED) revert AwaitingRiskScore(txHash);
         if (v.status == IRiskRegistry.Status.FROZEN) revert GuardIsFrozen();
         if (v.status == IRiskRegistry.Status.HIGH_RISK) revert BlockedHighRisk(txHash, v.score);
+        // `v.releaseAt` is set per-verdict by the relayer, not by a single
+        // Guard-wide delay window - each DELAYED verdict carries its own
+        // cooling-off length. Because this always reads the *current*
+        // verdict rather than one snapshotted when a tx was first delayed,
+        // the risk engine can cancel a delayed transaction mid-window at
+        // any time simply by overwriting it to HIGH_RISK - no separate
+        // cancellation path needed on the Guard.
         if (v.status == IRiskRegistry.Status.DELAYED && block.timestamp < v.releaseAt) {
             revert InCoolingOffWindow(txHash, v.releaseAt);
         }
