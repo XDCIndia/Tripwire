@@ -1,5 +1,6 @@
 import "./App.css"
 import { BatchRiskCard } from "./components/BatchRiskCard.js"
+import { AuthorizationCard } from "./components/AuthorizationCard.js"
 import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
@@ -10,6 +11,7 @@ import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
+import { SimulationIntegrityCard } from "./components/SimulationIntegrityCard.js"
 import { SimulationCard } from "./components/SimulationCard.js"
 import { VerificationStatusCard } from "./components/VerificationStatusCard.js"
 import { activeChain } from "./config.js"
@@ -34,6 +36,8 @@ export function App() {
         <PolicyPanel />
         <SimulateAttackCard />
         <BatchRiskCard />
+        <SimulationIntegrityCard />
+        <AuthorizationCard />
         <NonceConflictCard />
         <SimulationCard />
       </main>
