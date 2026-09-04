@@ -1,4 +1,5 @@
 import "./App.css"
+import { ActionAuthCard } from "./components/ActionAuthCard.js"
 import { BatchRiskCard } from "./components/BatchRiskCard.js"
 import { AuthorizationCard } from "./components/AuthorizationCard.js"
 import { AuditCard } from "./components/AuditCard.js"
@@ -35,6 +36,7 @@ export function App() {
         <GuardCard />
         <AuditCard />
         <RiskFeedCard />
+        <ActionAuthCard />
         <SecurityTimelineCard />
         <RiskDecisionCard />
         <PolicyPanel />
