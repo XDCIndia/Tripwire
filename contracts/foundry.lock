@@ -19,8 +19,8 @@
   },
   "lib/zodiac-core": {
     "tag": {
-      "name": "v4.3.0",
-      "rev": "b5fad243fd80a526ae5b60aa5373625d2dd31a6a"
+      "name": "v2.0.1",
+      "rev": "fb98551bca0f45ca626bcd65f34fabe4427d8c49"
     }
   }
 }
