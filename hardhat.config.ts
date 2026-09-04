@@ -1,4 +1,6 @@
 import * as dotenv from "dotenv"
+import * as fs from "fs"
+import * as path from "path"
 import { HardhatUserConfig } from "hardhat/types"
 
 import "@nomicfoundation/hardhat-toolbox"
@@ -8,7 +10,31 @@ import "hardhat-deploy"
 
 dotenv.config()
 
+// ─── Guard against contracts/lib/ collision (issue #100) ──────────────
+// When Foundry submodules are initialized inside contracts/, Hardhat
+// tries to compile Foundry-only files (forge-std, openzeppelin test
+// helpers, etc.) and fails with HH411. The fix is twofold:
+//   1. foundry.toml lives at the ROOT (not in contracts/) so lib/
+//      is always at the project root, never inside contracts/.
+//   2. This guard detects a misconfigured contracts/lib/ and tells
+//      the contributor exactly what to do.
+const contractsLib = path.resolve(__dirname, "contracts", "lib")
+if (fs.existsSync(contractsLib)) {
+  console.error(
+    "\n⚠️  contracts/lib/ exists — Foundry submodules are inside the Hardhat sources directory.\n" +
+    "   This breaks 'npx hardhat compile'. Move foundry.toml to the project root\n" +
+    "   (not inside contracts/) so lib/ lives at the root level instead.\n" +
+    "   See: https://github.com/XDCIndia/Tripwire/issues/100\n",
+  )
+}
+
 const config: HardhatUserConfig = {
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
   solidity: {
     version: "0.8.22",
     settings: {
@@ -56,6 +82,11 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  soliditycoverage: {
+    // Prevent solidity-coverage from walking into Foundry's lib/ if it
+    // somehow ends up inside contracts/ (issue #100).
+    skipFiles: ["lib/"],
   },
 }
 
