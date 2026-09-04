@@ -20,6 +20,13 @@ import {IRiskRegistry} from "./interfaces/IRiskRegistry.sol";
 /// This issue (#1) ships the skeleton and the freeze switch. Limits (#2) and
 /// the delay queue (#3) build on top of `checkTransaction` here.
 contract TripwireGuard is BaseGuard, Ownable {
+    /// @notice The Safe this Guard is enabled on. checkTransaction/
+    /// checkAfterExecution are restricted to it - once limits track state
+    /// (spend totals, cooling-off timers), letting anyone call these hooks
+    /// directly (bypassing an actual Safe execution) would let an outsider
+    /// fabricate spend records and grief the rolling limit for free.
+    address public avatar;
+
     IRiskRegistry public riskRegistry;
     bool public frozen;
 
@@ -31,16 +38,49 @@ contract TripwireGuard is BaseGuard, Ownable {
     /// a freeze can never also be the one that lifts it.
     address public freezeAuthority;
 
+    /// @notice Per-transaction cap and rolling 24h velocity cap, enforced
+    /// entirely on-chain as a hard backstop — independent of the off-chain
+    /// risk engine, so spending limits keep working even if the relayer/LLM
+    /// path is down. A value of 0 disables that particular check.
+    ///
+    /// A breach reverts outright rather than auto-scheduling a retry: the
+    /// EVM can't write a "come back later" record and then revert in the
+    /// same call (a revert unwinds every state change made during it, so
+    /// nothing written right before a `revert` ever persists). The graceful
+    /// "wait, then let it through" UX for an over-limit transaction is the
+    /// off-chain risk engine's job (#3/#9) - it can see these limits and
+    /// `windowSpent()` are public, read them while a transaction is still
+    /// only *proposed* (before any signer tries to execute it), and
+    /// pre-emptively write a `DELAYED` verdict with its own `releaseAt` to
+    /// the RiskRegistry, which `checkTransaction` already honors below.
+    uint256 public perTxLimit;
+    uint256 public rollingLimit;
+    uint256 public constant ROLLING_WINDOW = 1 days;
+
+    uint256 private _windowStart;
+    uint256 private _windowSpent;
+
+    /// @dev Value a transaction was approved for in checkTransaction,
+    /// consumed in checkAfterExecution so only *executed* value counts
+    /// against the rolling limit — a reverted inner call shouldn't burn
+    /// the wallet's daily allowance.
+    mapping(bytes32 => uint256) private _pendingValue;
+
     event RiskRegistryUpdated(address indexed riskRegistry);
     event FreezeAuthorityUpdated(address indexed freezeAuthority);
     event GuardFrozen(address indexed by);
     event GuardUnfrozen(address indexed by);
+    event LimitsUpdated(uint256 perTxLimit, uint256 rollingLimit);
+    event AvatarUpdated(address indexed avatar);
 
     error GuardIsFrozen();
     error AwaitingRiskScore(bytes32 txHash);
     error BlockedHighRisk(bytes32 txHash, uint8 score);
     error InCoolingOffWindow(bytes32 txHash, uint256 releaseAt);
     error NotOwnerOrFreezeAuthority(address caller);
+    error NotAvatar(address caller);
+    error PerTxLimitExceeded(bytes32 txHash, uint256 value, uint256 limit);
+    error RollingLimitExceeded(bytes32 txHash, uint256 attemptedTotal, uint256 limit);
 
     modifier onlyOwnerOrFreezeAuthority() {
         if (msg.sender != owner() && msg.sender != freezeAuthority) {
@@ -49,11 +89,25 @@ contract TripwireGuard is BaseGuard, Ownable {
         _;
     }
 
-    constructor(address _owner, address _riskRegistry, address _freezeAuthority) Ownable(_owner) {
+    modifier onlyAvatar() {
+        if (msg.sender != avatar) revert NotAvatar(msg.sender);
+        _;
+    }
+
+    constructor(address _owner, address _riskRegistry, address _freezeAuthority, address _avatar)
+        Ownable(_owner)
+    {
         riskRegistry = IRiskRegistry(_riskRegistry);
         emit RiskRegistryUpdated(_riskRegistry);
         freezeAuthority = _freezeAuthority;
         emit FreezeAuthorityUpdated(_freezeAuthority);
+        avatar = _avatar;
+        emit AvatarUpdated(_avatar);
+    }
+
+    function setAvatar(address _avatar) external onlyOwner {
+        avatar = _avatar;
+        emit AvatarUpdated(_avatar);
     }
 
     function setRiskRegistry(address _riskRegistry) external onlyOwner {
@@ -64,6 +118,17 @@ contract TripwireGuard is BaseGuard, Ownable {
     function setFreezeAuthority(address _freezeAuthority) external onlyOwner {
         freezeAuthority = _freezeAuthority;
         emit FreezeAuthorityUpdated(_freezeAuthority);
+    }
+
+    function setLimits(uint256 _perTxLimit, uint256 _rollingLimit) external onlyOwner {
+        perTxLimit = _perTxLimit;
+        rollingLimit = _rollingLimit;
+        emit LimitsUpdated(_perTxLimit, _rollingLimit);
+    }
+
+    /// @notice Value already spent in the current rolling 24h window.
+    function windowSpent() external view returns (uint256) {
+        return _currentWindowSpent();
     }
 
     /// @notice Emergency circuit breaker: blocks every outgoing transaction
@@ -104,7 +169,7 @@ contract TripwireGuard is BaseGuard, Ownable {
         address payable, /* refundReceiver */
         bytes memory, /* signatures */
         address /* msgSender */
-    ) external view override {
+    ) external override onlyAvatar {
         if (frozen) revert GuardIsFrozen();
 
         bytes32 txHash = txHashOf(to, value, data, operation);
@@ -116,13 +181,38 @@ contract TripwireGuard is BaseGuard, Ownable {
         if (v.status == IRiskRegistry.Status.DELAYED && block.timestamp < v.releaseAt) {
             revert InCoolingOffWindow(txHash, v.releaseAt);
         }
-        // Status.LOW_RISK, or Status.DELAYED past its releaseAt: allowed through.
-        // Per-tx/velocity limit enforcement lands in issue #2.
+        // Status.LOW_RISK, or Status.DELAYED past its releaseAt: the
+        // off-chain risk engine cleared it. Still enforce spending limits
+        // on-chain as a hard backstop, independent of that verdict.
+        if (perTxLimit != 0 && value > perTxLimit) {
+            revert PerTxLimitExceeded(txHash, value, perTxLimit);
+        }
+        if (rollingLimit != 0) {
+            uint256 projected = _currentWindowSpent() + value;
+            if (projected > rollingLimit) revert RollingLimitExceeded(txHash, projected, rollingLimit);
+        }
+
+        _pendingValue[txHash] = value;
     }
 
-    function checkAfterExecution(bytes32, /* txHash */ bool /* success */ ) external pure override {
-        // Nothing to do post-execution yet. Reserved for future use (e.g.
-        // recording actual executed value for the rolling velocity limit
-        // in issue #2, once that lands).
+    function checkAfterExecution(bytes32 txHash, bool success) external override onlyAvatar {
+        uint256 value = _pendingValue[txHash];
+        delete _pendingValue[txHash];
+        if (success) _recordSpend(value);
+    }
+
+    function _currentWindowSpent() internal view returns (uint256) {
+        if (block.timestamp >= _windowStart + ROLLING_WINDOW) return 0;
+        return _windowSpent;
+    }
+
+    function _recordSpend(uint256 value) internal {
+        if (value == 0) return;
+        if (block.timestamp >= _windowStart + ROLLING_WINDOW) {
+            _windowStart = block.timestamp;
+            _windowSpent = value;
+        } else {
+            _windowSpent += value;
+        }
     }
 }
