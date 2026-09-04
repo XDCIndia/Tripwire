@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "orchestrator": "tsx src/orchestratorMain.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "demo:policy": "tsx scripts/policyDemo.ts",

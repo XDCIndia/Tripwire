@@ -1,0 +1,22 @@
+# Foundry configuration — issue #100
+#
+# IMPORTANT: This file MUST live at the project root, NOT inside contracts/.
+# If foundry.toml is placed inside contracts/ with src = ".", then
+# `forge install` creates contracts/lib/ which Hardhat tries to compile,
+# breaking `npx hardhat compile` entirely.
+#
+# With this layout:
+#   foundry.toml  →  root
+#   lib/          →  root (forge install puts submodules here)
+#   contracts/    →  Hardhat sources (clean, no lib/ collision)
+#
+# See: https://github.com/XDCIndia/Tripwire/issues/100
+
+[profile.default]
+src = "contracts"
+out = "forge-out"
+libs = ["lib"]
+
+# Skip Hardhat test helpers and test contracts that use Hardhat-only
+# patterns (deployments fixture, etc.) — Foundry has its own test suite.
+skip = ["test/**", "scripts/**"]
