@@ -1,4 +1,7 @@
+import * as path from "node:path"
+
 import * as dotenv from "dotenv"
+import { subtask } from "hardhat/config"
 import { HardhatUserConfig } from "hardhat/types"
 
 import "@nomicfoundation/hardhat-toolbox"
@@ -6,7 +9,27 @@ import "hardhat-gas-reporter"
 import "solidity-coverage"
 import "hardhat-deploy"
 
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names"
+
 dotenv.config()
+
+// contracts/lib/ is Foundry's vendored dependency tree (forge-std,
+// openzeppelin-contracts, safe-contracts, zodiac-core - see issue #6's
+// Foundry test suite), living inside the same `contracts/` directory
+// Hardhat treats as its source root by default. Hardhat has no built-in
+// way to exclude a subpath from its source glob, so without this override
+// it tries to compile every vendored dependency's own test/example files
+// too (which use Foundry-only cheatcodes and remappings Hardhat can't
+// resolve) and fails outright with HH411. Foundry's own `.t.sol` test
+// files are excluded the same way - Hardhat can't compile those either
+// (forge-std's `Test` base contract isn't resolvable via node_modules).
+// This is the standard fix for two toolchains sharing one contracts/
+// directory: neither Foundry's config (contracts/foundry.toml) nor its
+// submodules under contracts/lib/ are touched by this.
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS, async (_, __, runSuper) => {
+  const paths: string[] = await runSuper()
+  return paths.filter((p) => !p.includes(`${path.sep}contracts${path.sep}lib${path.sep}`) && !p.endsWith(".t.sol"))
+})
 
 const config: HardhatUserConfig = {
   solidity: {

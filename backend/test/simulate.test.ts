@@ -12,11 +12,13 @@ function statefulMockClient(overrides: Partial<ForkClient> = {}): ForkClient {
   let approved = false
   let executed = false
   let reverted = false
+  let nftOwner: `0x${string}` = SAFE
 
   return {
     getBalance: vi.fn(async () => balance),
     readErc20Allowance: vi.fn(async () => 0n),
     readIsApprovedForAll: vi.fn(async () => approved),
+    readErc721Owner: vi.fn(async () => nftOwner),
     snapshot: vi.fn(async () => "0x1"),
     revert: vi.fn(async () => {
       reverted = true
@@ -66,9 +68,7 @@ describe("simulateTransaction", function () {
         throw new Error("boom")
       }),
     })
-    await expect(simulateTransaction(client, { from: SAFE, to: TOKEN, value: 0n, data: "0x" })).rejects.toThrow(
-      "boom",
-    )
+    await expect(simulateTransaction(client, { from: SAFE, to: TOKEN, value: 0n, data: "0x" })).rejects.toThrow("boom")
     expect(client.revert).toHaveBeenCalledWith("0x1")
   })
 
@@ -95,6 +95,40 @@ describe("simulateTransaction", function () {
       watchTokens: [{ address: TOKEN, standard: "erc20", spender: ATTACKER }],
     })
     expect(readErc20Allowance).toHaveBeenCalledWith(TOKEN, SAFE, ATTACKER)
-    expect(diff.newAllowances).toEqual([{ token: TOKEN, spender: ATTACKER, standard: "erc20", before: 0n, after: 500n }])
+    expect(diff.newAllowances).toEqual([
+        { token: TOKEN, spender: ATTACKER, standard: "erc20", before: 0n, after: 500n },
+      ])
+  })
+
+  it("reports watched NFTs whose owner changes, and omits stable ones", async function () {
+    const NFT = "0xNft0000000000000000000000000000000000000" as const
+    const OTHER_NFT = "0xNft1111111111111111111111111111111111111" as const
+    const owners = new Map<string, `0x${string}`>([
+      ["1", SAFE],
+      ["7", SAFE],
+    ])
+    const readErc721Owner = vi.fn(async (_token: `0x${string}`, tokenId: bigint) => {
+      return owners.get(tokenId.toString()) ?? SAFE
+    })
+    const client = statefulMockClient({
+      readErc721Owner,
+      execute: vi.fn(async () => {
+        owners.set("1", ATTACKER) // the simulated tx moves token 1 out of the Safe
+        return { success: true }
+      }),
+    })
+
+    const diff = await simulateTransaction(client, {
+      from: SAFE,
+      to: TOKEN,
+      value: 0n,
+      data: "0x",
+      watchNfts: [
+        { address: NFT, tokenId: 1n },
+        { address: OTHER_NFT, tokenId: 7n }, // owner never changes
+      ],
+    })
+    expect(diff.ownershipChanges).toEqual([{ token: NFT, tokenId: 1n, ownerBefore: SAFE, ownerAfter: ATTACKER }])
+    expect(client.revert).toHaveBeenCalledWith("0x1")
   })
 })

@@ -19,6 +19,37 @@ export interface RiskRegistryClient {
 }
 
 /**
+ * Thrown when a verdict submission mined but reverted. This is a
+ * deterministic failure - resubmitting the same verdict will revert the
+ * same way - so the relayer must NOT retry it (unlike transient network
+ * errors, which it must).
+ */
+export class VerdictRevertedError extends Error {
+  constructor(
+    readonly txHash: string,
+    readonly transaction: string,
+  ) {
+    super(`submitVerdict for ${txHash} reverted (tx ${transaction})`)
+    this.name = "VerdictRevertedError"
+  }
+}
+
+export interface VerdictRelayerOptions {
+  /**
+   * Total submission attempts per verdict before giving up. Transient
+   * failures (RPC down, connection reset) are retried; a mined revert is
+   * not. Default 3.
+   */
+  maxAttempts?: number
+  /** Base backoff in ms between attempts - attempt N waits backoffMs * 2^(N-1). Default 500. */
+  backoffMs?: number
+  /** Injectable sleep for tests. Defaults to setTimeout. */
+  sleep?: (ms: number) => Promise<void>
+}
+
+const defaultSleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
  * How long a registry-configured delay window is cached before being
  * re-read. Bounds the fast path to one RPC read per minute rather than one
  * per verdict, while still picking up owner changes from the dashboard
@@ -35,12 +66,29 @@ export const DELAY_WINDOW_REFRESH_MS = 60_000
  * overwrite the fast one since RiskRegistry.submitVerdict has no "already
  * scored" guard. A transaction this relayer has seen is never left
  * UNSCORED - the fast path alone guarantees that.
+ *
+ * Submission is retried on transient failure: a verdict that failed to land
+ * because the RPC hiccuped must not be abandoned - that would leave the
+ * transaction UNSCORED on-chain, the one outcome this component exists to
+ * prevent. Resubmission is safe precisely because the contract has no
+ * "already scored" guard. The verdict is computed once and resubmitted
+ * unchanged, so retries can never disagree with the first attempt.
  */
 export class VerdictRelayer {
+  private readonly maxAttempts: number
+  private readonly backoffMs: number
+  private readonly sleep: (ms: number) => Promise<void>
   private cachedDelayWindow: number | undefined
   private delayWindowFetchedAt = 0
 
-  constructor(private readonly client: RiskRegistryClient) {}
+  constructor(
+    private readonly client: RiskRegistryClient,
+    options: VerdictRelayerOptions = {},
+  ) {
+    this.maxAttempts = options.maxAttempts ?? 3
+    this.backoffMs = options.backoffMs ?? 500
+    this.sleep = options.sleep ?? defaultSleep
+  }
 
   private async effectiveDelayWindow(now: number): Promise<number> {
     if (this.cachedDelayWindow === undefined || now - this.delayWindowFetchedAt >= DELAY_WINDOW_REFRESH_MS) {
@@ -53,7 +101,7 @@ export class VerdictRelayer {
 
   async submitFast(txHash: `0x${string}`, ruleResult: RuleEngineResult): Promise<OnChainVerdict> {
     const verdict = verdictFromRuleEngine(ruleResult, { delaySeconds: await this.effectiveDelayWindow(Date.now()) })
-    await this.client.submitVerdict(txHash, verdict)
+    await this.submitWithRetry(txHash, verdict)
     return verdict
   }
 
@@ -63,7 +111,28 @@ export class VerdictRelayer {
     llm: LlmVerdict | undefined,
   ): Promise<OnChainVerdict> {
     const verdict = finalVerdict(ruleResult, llm, { delaySeconds: await this.effectiveDelayWindow(Date.now()) })
-    await this.client.submitVerdict(txHash, verdict)
+    await this.submitWithRetry(txHash, verdict)
     return verdict
+  }
+
+  private async submitWithRetry(txHash: `0x${string}`, verdict: OnChainVerdict): Promise<void> {
+    let lastError: unknown
+
+    for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
+      try {
+        await this.client.submitVerdict(txHash, verdict)
+        return
+      } catch (err) {
+        lastError = err
+        // A mined revert cannot be fixed by resubmitting - fail now so the
+        // caller's alerting sees the real error immediately.
+        if (err instanceof VerdictRevertedError) throw err
+        if (attempt < this.maxAttempts) {
+          await this.sleep(this.backoffMs * 2 ** (attempt - 1))
+        }
+      }
+    }
+
+    throw lastError
   }
 }

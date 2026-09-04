@@ -74,4 +74,12 @@ describe("RiskRegistry", function () {
       "OwnableUnauthorizedAccount",
     )
   })
+
+  it("rejects setRelayer with zero address", async function () {
+    const { registry } = await setup()
+    await expect(registry.setRelayer(ethers.ZeroAddress)).to.be.revertedWithCustomError(
+      registry,
+      "InvalidZeroAddress",
+    )
+  })
 })

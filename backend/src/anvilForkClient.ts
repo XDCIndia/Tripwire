@@ -2,12 +2,11 @@ import { type Chain, createPublicClient, createTestClient, http, parseAbi } from
 
 import type { ForkClient } from "./simulate.js"
 
-const ERC20_ALLOWANCE_ABI = parseAbi([
-  "function allowance(address owner, address spender) view returns (uint256)",
-])
+const ERC20_ALLOWANCE_ABI = parseAbi(["function allowance(address owner, address spender) view returns (uint256)"])
 const NFT_IS_APPROVED_FOR_ALL_ABI = parseAbi([
   "function isApprovedForAll(address owner, address operator) view returns (bool)",
 ])
+const ERC721_OWNER_OF_ABI = parseAbi(["function ownerOf(uint256 tokenId) view returns (address)"])
 
 export interface AnvilForkClientConfig {
   rpcUrl: string
@@ -22,7 +21,9 @@ export interface AnvilForkClientConfig {
  * being a contract, it doesn't have one of anyway).
  */
 export function createAnvilForkClient(config: AnvilForkClientConfig): ForkClient {
-  const transport = http(config.rpcUrl)
+  // Hard ceiling on any single RPC round trip - a hung fork must fail the
+  // simulation step, not stall the pipeline that called it.
+  const transport = http(config.rpcUrl, { timeout: 10_000 })
   const publicClient = createPublicClient({ chain: config.chain, transport })
   const testClient = createTestClient({ mode: "anvil", chain: config.chain, transport })
 
@@ -44,6 +45,14 @@ export function createAnvilForkClient(config: AnvilForkClientConfig): ForkClient
         abi: NFT_IS_APPROVED_FOR_ALL_ABI,
         functionName: "isApprovedForAll",
         args: [owner, spender],
+      })
+    },
+    async readErc721Owner(token, tokenId) {
+      return publicClient.readContract({
+        address: token,
+        abi: ERC721_OWNER_OF_ABI,
+        functionName: "ownerOf",
+        args: [tokenId],
       })
     },
     async snapshot() {
