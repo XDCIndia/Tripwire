@@ -7,13 +7,13 @@ const Status = { UNSCORED: 0, LOW_RISK: 1, DELAYED: 2, HIGH_RISK: 3, FROZEN: 4 }
 const CALL = 0 // Enum.Operation.Call
 
 async function setup() {
-  const [owner, target] = await ethers.getSigners()
+  const [owner, target, freezeAuthority] = await ethers.getSigners()
 
   const MockRiskRegistry = await ethers.getContractFactory("MockRiskRegistry")
   const registry = await MockRiskRegistry.deploy()
 
   const TripwireGuard = await ethers.getContractFactory("TripwireGuard")
-  const guard = await TripwireGuard.deploy(owner.address, await registry.getAddress())
+  const guard = await TripwireGuard.deploy(owner.address, await registry.getAddress(), freezeAuthority.address)
 
   const to = target.address
   const value = 0n
@@ -35,7 +35,7 @@ async function setup() {
       owner.address,
     )
 
-  return { owner, registry, guard, to, value, data, txHash, check }
+  return { owner, freezeAuthority, registry, guard, to, value, data, txHash, check }
 }
 
 describe("TripwireGuard", function () {
@@ -74,12 +74,42 @@ describe("TripwireGuard", function () {
     await expect(check()).to.be.revertedWithCustomError(guard, "GuardIsFrozen")
   })
 
-  it("only the owner can freeze, unfreeze, or update the risk registry", async function () {
+  it("only the owner can unfreeze or update the risk registry", async function () {
     const { guard, registry } = await setup()
-    const [, other] = await ethers.getSigners()
-    await expect(guard.connect(other).freeze()).to.be.revertedWithCustomError(guard, "OwnableUnauthorizedAccount")
+    const [, , , other] = await ethers.getSigners()
+    await guard.freeze()
+    await expect(guard.connect(other).unfreeze()).to.be.revertedWithCustomError(guard, "OwnableUnauthorizedAccount")
     await expect(
       guard.connect(other).setRiskRegistry(await registry.getAddress()),
     ).to.be.revertedWithCustomError(guard, "OwnableUnauthorizedAccount")
+  })
+
+  it("lets the freeze authority (risk engine relayer) trip the breaker, but not lift it", async function () {
+    const { guard, freezeAuthority } = await setup()
+    await expect(guard.connect(freezeAuthority).freeze()).to.not.be.reverted
+    expect(await guard.frozen()).to.equal(true)
+    await expect(guard.connect(freezeAuthority).unfreeze()).to.be.revertedWithCustomError(
+      guard,
+      "OwnableUnauthorizedAccount",
+    )
+  })
+
+  it("rejects freeze() from an address that is neither owner nor freeze authority", async function () {
+    const { guard } = await setup()
+    const [, , , other] = await ethers.getSigners()
+    await expect(guard.connect(other).freeze())
+      .to.be.revertedWithCustomError(guard, "NotOwnerOrFreezeAuthority")
+      .withArgs(other.address)
+  })
+
+  it("only the owner can rotate the freeze authority", async function () {
+    const { guard } = await setup()
+    const [, , , other] = await ethers.getSigners()
+    await expect(guard.connect(other).setFreezeAuthority(other.address)).to.be.revertedWithCustomError(
+      guard,
+      "OwnableUnauthorizedAccount",
+    )
+    await expect(guard.setFreezeAuthority(other.address)).to.not.be.reverted
+    await expect(guard.connect(other).freeze()).to.not.be.reverted
   })
 })

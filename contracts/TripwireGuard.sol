@@ -23,7 +23,16 @@ contract TripwireGuard is BaseGuard, Ownable {
     IRiskRegistry public riskRegistry;
     bool public frozen;
 
+    /// @notice A second address, distinct from the owner, allowed to trip
+    /// the freeze switch. Meant for the off-chain risk engine's relayer, so
+    /// a critical-score verdict can halt the Safe immediately rather than
+    /// waiting on an owner to notice an alert. Deliberately one-directional:
+    /// only the owner can unfreeze, so the automated system that can trigger
+    /// a freeze can never also be the one that lifts it.
+    address public freezeAuthority;
+
     event RiskRegistryUpdated(address indexed riskRegistry);
+    event FreezeAuthorityUpdated(address indexed freezeAuthority);
     event GuardFrozen(address indexed by);
     event GuardUnfrozen(address indexed by);
 
@@ -31,10 +40,20 @@ contract TripwireGuard is BaseGuard, Ownable {
     error AwaitingRiskScore(bytes32 txHash);
     error BlockedHighRisk(bytes32 txHash, uint8 score);
     error InCoolingOffWindow(bytes32 txHash, uint256 releaseAt);
+    error NotOwnerOrFreezeAuthority(address caller);
 
-    constructor(address _owner, address _riskRegistry) Ownable(_owner) {
+    modifier onlyOwnerOrFreezeAuthority() {
+        if (msg.sender != owner() && msg.sender != freezeAuthority) {
+            revert NotOwnerOrFreezeAuthority(msg.sender);
+        }
+        _;
+    }
+
+    constructor(address _owner, address _riskRegistry, address _freezeAuthority) Ownable(_owner) {
         riskRegistry = IRiskRegistry(_riskRegistry);
         emit RiskRegistryUpdated(_riskRegistry);
+        freezeAuthority = _freezeAuthority;
+        emit FreezeAuthorityUpdated(_freezeAuthority);
     }
 
     function setRiskRegistry(address _riskRegistry) external onlyOwner {
@@ -42,13 +61,22 @@ contract TripwireGuard is BaseGuard, Ownable {
         emit RiskRegistryUpdated(_riskRegistry);
     }
 
+    function setFreezeAuthority(address _freezeAuthority) external onlyOwner {
+        freezeAuthority = _freezeAuthority;
+        emit FreezeAuthorityUpdated(_freezeAuthority);
+    }
+
     /// @notice Emergency circuit breaker: blocks every outgoing transaction
-    /// from the Safe regardless of any recorded verdict.
-    function freeze() external onlyOwner {
+    /// from the Safe regardless of any recorded verdict. Callable by the
+    /// owner directly, or by the freeze authority (the risk engine relayer)
+    /// when a verdict crosses a critical score threshold off-chain.
+    function freeze() external onlyOwnerOrFreezeAuthority {
         frozen = true;
         emit GuardFrozen(msg.sender);
     }
 
+    /// @notice Owner-only, deliberately: whoever can trip the breaker should
+    /// never be the same party that can silently reset it.
     function unfreeze() external onlyOwner {
         frozen = false;
         emit GuardUnfrozen(msg.sender);
