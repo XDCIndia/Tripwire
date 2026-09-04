@@ -501,3 +501,242 @@
   color: var(--text);
   margin-top: 12px;
 }
+
+/* Issue #97: Nonce Conflict Detection */
+
+.nonce-card {
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.nonce-description {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 14px;
+}
+
+.nonce-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.nonce-controls button {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.nonce-controls button:hover {
+  border-color: var(--accent-border);
+}
+
+.nonce-demo-active {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.4) !important;
+  color: #2563eb;
+}
+
+.nonce-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.nonce-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.05);
+  margin-bottom: 16px;
+}
+
+.nonce-summary-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: #dc2626;
+  color: #fff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.nonce-summary-text {
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.nonce-conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nonce-conflict-row {
+  border-left: 3px solid var(--border);
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 8px 8px 0;
+}
+
+.nonce-conflict-header {
+  cursor: pointer;
+}
+
+.nonce-conflict-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nonce-conflict-nonce {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.nonce-conflict-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nonce-conflict-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-left: auto;
+}
+
+.nonce-conflict-active-label {
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.nonce-conflict-body {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.nonce-invalidation-warning {
+  font-size: 12px;
+  color: #dc2626;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  margin-bottom: 10px;
+}
+
+.nonce-tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nonce-tx-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.nonce-tx-active {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.nonce-tx-superseded {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.03);
+  opacity: 0.85;
+}
+
+.nonce-tx-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nonce-tx-state {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.nonce-tx-hash {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nonce-tx-risk {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.nonce-tx-desc {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 0;
+  opacity: 0.8;
+}
+
+.nonce-nav-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.nonce-nav-btn:hover {
+  border-color: var(--accent-border);
+}
+
+.nonce-conflict-explanation {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
+.nonce-conflict-explanation p {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.nonce-empty {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.nonce-empty p {
+  margin: 0;
+}
