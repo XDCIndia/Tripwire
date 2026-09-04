@@ -1,4 +1,5 @@
 import "./App.css"
+import { AttackPatternCard } from "./components/AttackPatternCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
 import { PolicyChat } from "./components/PolicyChat.js"
@@ -24,6 +25,7 @@ export function App() {
         <RiskFeedCard />
         <PolicyPanel />
         <SimulateAttackCard />
+        <AttackPatternCard />
       </main>
       <PolicyChat />
     </div>
