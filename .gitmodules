@@ -1,0 +1,12 @@
+[submodule "contracts/lib/zodiac-core"]
+	path = contracts/lib/zodiac-core
+	url = https://github.com/gnosisguild/zodiac-core
+[submodule "contracts/lib/openzeppelin-contracts"]
+	path = contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "contracts/lib/safe-contracts"]
+	path = contracts/lib/safe-contracts
+	url = https://github.com/safe-global/safe-contracts
+[submodule "contracts/lib/forge-std"]
+	path = contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
