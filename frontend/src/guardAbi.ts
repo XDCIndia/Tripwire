@@ -28,4 +28,11 @@ export const GUARD_READ_ABI = parseAbi([
   "function perTxLimit() view returns (uint256)",
   "function rollingLimit() view returns (uint256)",
   "function windowSpent() view returns (uint256)",
-])
+])
+
+// Write ABI for Guard mutations (#18, #20).
+export const GUARD_WRITE_ABI = parseAbi([
+  "function setLimits(uint256 _perTxLimit, uint256 _rollingLimit)",
+  "function freeze()",
+  "function unfreeze()",
+])
