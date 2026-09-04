@@ -24,6 +24,9 @@ function baseInput(overrides: Partial<RuleEngineInput> = {}): RuleEngineInput {
     value: 0n,
     isFirstSeenCounterparty: false,
     isUnverifiedOrFreshContract: false,
+    // The default every existing test implicitly relied on pre-#10: a lookup
+    // that couldn't be performed adds nothing. Explicit now.
+    counterpartyBlacklist: "unknown",
     historicalP95Value: 0n,
     ...overrides,
   }
@@ -75,6 +78,36 @@ describe("scoreTransaction", function () {
     expect(result.score).toBe(25)
   })
 
+  it("flags a blacklisted counterparty, but treats clean and unknown as no-ops", function () {
+    const malicious = scoreTransaction(baseInput({ counterpartyBlacklist: "malicious" }))
+    expect(malicious.score).toBe(60)
+    expect(malicious.matchedSignals[0]).toMatch(/GoPlus/)
+
+    // "clean" is a completed check with nothing found - zero, like the other
+    // negative signals.
+    const clean = scoreTransaction(baseInput({ counterpartyBlacklist: "clean" }))
+    expect(clean.score).toBe(0)
+    expect(clean.matchedSignals).toEqual([])
+
+    // "unknown" (API failure/timeout) must add nothing - and must NOT be
+    // silently promoted to "clean" either.
+    const unknown = scoreTransaction(baseInput({ counterpartyBlacklist: "unknown" }))
+    expect(unknown.score).toBe(0)
+    expect(unknown.matchedSignals).toEqual([])
+  })
+
+  it("a blacklist hit alone is medium_risk, and tips into high_risk with any second signal", function () {
+    const alone = scoreTransaction(baseInput({ counterpartyBlacklist: "malicious" }))
+    expect(alone.score).toBe(60)
+    expect(alone.label).toBe("medium_risk")
+
+    const withFirstSeen = scoreTransaction(
+      baseInput({ counterpartyBlacklist: "malicious", isFirstSeenCounterparty: true }),
+    )
+    expect(withFirstSeen.score).toBe(80)
+    expect(withFirstSeen.label).toBe("high_risk")
+  })
+
   it("flags a value above the wallet's historical p95, but not below or at it", function () {
     const above = scoreTransaction(baseInput({ value: 200n, historicalP95Value: 100n }))
     expect(above.score).toBe(15)
@@ -87,9 +120,7 @@ describe("scoreTransaction", function () {
   })
 
   it("combines multiple signals and labels medium_risk in the 30-69 range", function () {
-    const result = scoreTransaction(
-      baseInput({ isFirstSeenCounterparty: true, isUnverifiedOrFreshContract: true }),
-    )
+    const result = scoreTransaction(baseInput({ isFirstSeenCounterparty: true, isUnverifiedOrFreshContract: true }))
     expect(result.score).toBe(45)
     expect(result.label).toBe("medium_risk")
     expect(result.matchedSignals).toHaveLength(2)
@@ -101,11 +132,12 @@ describe("scoreTransaction", function () {
       value: 500n,
       isFirstSeenCounterparty: true,
       isUnverifiedOrFreshContract: true,
+      counterpartyBlacklist: "malicious",
       historicalP95Value: 100n,
     })
-    // 45 + 20 + 25 + 15 = 105, capped
+    // 45 + 20 + 25 + 60 + 15 = 165, capped
     expect(result.score).toBe(100)
     expect(result.label).toBe("high_risk")
-    expect(result.matchedSignals).toHaveLength(4)
+    expect(result.matchedSignals).toHaveLength(5)
   })
 })
