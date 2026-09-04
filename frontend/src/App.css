@@ -543,246 +543,349 @@
   opacity: 0.75;
 }
 
-/* Issue #90: Approval Scope Visualizer */
+/* Issue #82: Transaction State Machine */
 
-.approval-card {
-  border-color: rgba(217, 119, 6, 0.3);
+.state-card {
+  border-color: rgba(14, 165, 233, 0.3);
 }
 
-.approval-description {
+.state-description {
   font-size: 13px;
   color: var(--text);
   opacity: 0.8;
   margin: 0 0 14px;
 }
 
-.approval-form {
+.state-controls {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.approval-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--text);
+.state-controls button {
+  font-family: var(--sans);
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.approval-form input {
-  font-family: var(--mono);
-  font-size: 13px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 5px 12px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
+  cursor: pointer;
 }
 
-.approval-form input:focus {
-  outline: none;
+.state-controls button:hover {
   border-color: var(--accent-border);
 }
 
-.approval-form button {
-  font-family: var(--sans);
-  font-size: 14px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--text-h);
-  cursor: pointer;
-  align-self: flex-start;
+.state-btn-active {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.4) !important;
+  color: #0ea5e9;
 }
 
-.approval-form button:hover {
-  background: var(--accent);
-  color: #fff;
-}
-
-.approval-result {
-  margin-top: 18px;
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-}
-
-.approval-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.approval-type {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-/* Permission graph */
-.approval-graph {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  margin: 0 0 20px;
-  padding: 16px 0;
-}
-
-.graph-node {
-  font-family: var(--mono);
+.state-hint {
   font-size: 12px;
-  font-weight: 600;
-  padding: 8px 18px;
-  border-radius: 8px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+/* Status header */
+.state-status {
   border: 1px solid var(--border);
-  text-align: center;
-  min-width: 180px;
-  background: var(--bg);
-  color: var(--text-h);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.graph-wallet {
-  background: rgba(37, 99, 235, 0.1);
-  border-color: rgba(37, 99, 235, 0.4);
-  color: #2563eb;
+.state-status-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
-.graph-token {
-  background: rgba(217, 119, 6, 0.1);
-  border-color: rgba(217, 119, 6, 0.4);
-  color: #d97706;
+.state-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.graph-spender {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.35);
-  color: #dc2626;
-}
-
-.graph-exposure {
+.state-current {
+  font-family: var(--mono);
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
-.graph-edge {
-  font-size: 11px;
+.state-terminal-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--muted);
-  padding: 4px 0;
-  text-align: center;
-}
-
-.graph-sub {
-  display: block;
-  font-size: 11px;
-  font-weight: 400;
-  opacity: 0.7;
-  margin-top: 2px;
-}
-
-/* Before / After table */
-.approval-section {
-  margin: 16px 0;
-}
-
-.approval-section h3 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  margin: 0 0 10px;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.approval-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.state-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.approval-table th {
-  text-align: left;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text);
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-}
-
-.approval-table td {
-  padding: 6px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: var(--text-h);
-}
-
-.approval-table tr:last-child td {
-  border-bottom: none;
-}
-
-/* Security indicators */
-.approval-indicators {
-  margin: 16px 0;
-}
-
-.approval-indicators h4 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  margin: 0 0 10px;
-}
-
-.approval-indicators ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.approval-indicators li {
+.state-meta-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
-.indicator-danger {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+.state-meta-label {
+  color: var(--muted);
+  min-width: 70px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
 
-.indicator-warn {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
-  border: 1px solid rgba(217, 119, 6, 0.3);
-}
-
-.indicator-safe {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.indicator-emoji {
-  font-size: 14px;
-}
-
-/* Explanation */
-.approval-explanation {
-  font-size: 14px;
-  line-height: 1.55;
+.state-meta-value {
   color: var(--text-h);
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
 }
 
+.state-sync {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* State badge */
+.state-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.03em;
+}
+
+.state-badge-small {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.state-badge-terminal {
+  opacity: 0.7;
+}
+
+/* State flow diagram */
+.state-flow {
+  margin-bottom: 14px;
+}
+
+.state-flow h3,
+.state-history h3,
+.state-rejection h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.state-flow-main {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.state-flow-step {
+  display: flex;
+  align-items: center;
+}
+
+.state-flow-node {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.state-flow-active {
+  font-weight: 700;
+}
+
+.state-flow-terminal {
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.3);
+}
+
+.state-flow-connector {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 2px;
+}
+
+.state-flow-failures {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+
+.state-flow-failure {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.state-flow-failure-from {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.state-flow-failure-arrow {
+  color: var(--muted);
+}
+
+.state-flow-failure-to {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* Transition history */
+.state-history {
+  margin-bottom: 14px;
+}
+
+.state-transition {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.state-transition-index {
+  font-family: var(--mono);
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.state-transition-from {
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.state-transition-arrow {
+  color: var(--muted);
+}
+
+.state-transition-to {
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.state-transition-version {
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.state-transition-time {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.state-transition-reason {
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 10px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Rejection demo */
+.state-rejection {
+  margin-top: 14px;
+}
+
+.state-rejection-desc {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 8px;
+}
+
+.state-rejection-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.state-rejection-buttons button {
+  font-family: var(--sans);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.state-rejection-buttons button:hover {
+  border-color: var(--accent-border);
+}
+
+.state-rejection-result {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.state-rejection-accepted {
+  background: rgba(22, 163, 74, 0.06);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.state-rejection-rejected {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.state-rejection-status {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.state-rejection-accepted .state-rejection-status { color: #16a34a; }
+.state-rejection-rejected .state-rejection-status { color: #dc2626; }
+
+.state-rejection-reason {
+  color: var(--text);
+  opacity: 0.8;
+  font-size: 11px;
+}
+
+.state-empty {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.state-empty p {
+  margin: 0;
+}

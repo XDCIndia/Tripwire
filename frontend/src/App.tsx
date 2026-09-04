@@ -1,8 +1,8 @@
 import "./App.css"
-import { ApprovalScopeCard } from "./components/ApprovalScopeCard.js"
 import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
+import { TransactionStateCard } from "./components/TransactionStateCard.js"
 import { PolicyChat } from "./components/PolicyChat.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
@@ -23,13 +23,13 @@ export function App() {
       </header>
       <main className="grid">
         <SafeCard />
+        <TransactionStateCard />
         <GuardCard />
         <AuditCard />
         <RiskFeedCard />
         <PolicyPanel />
         <SimulateAttackCard />
         <SimulationCard />
-        <ApprovalScopeCard />
       </main>
       <PolicyChat />
     </div>
