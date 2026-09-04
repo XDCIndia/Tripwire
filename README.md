@@ -45,6 +45,23 @@ cd backend && npm run demo:policy
 
 Writing a verdict is not the same as enforcing it. Between the submit and the next block a verdict can be overwritten, the Guard unfrozen, or limits raised - so the backend never assumes a verdict it wrote actually stopped anything. For every verdict it submits, it records the **expected enforcement** (allow / delay / block, derived the same way `TripwireGuard.checkTransaction` enforces) and independently re-reads the chain to compare. Outcomes are `MATCH`, `MISMATCH` (critical - a protection gap, latched forever on the record), `PENDING` (auto re-checked with backoff), `REVERTED`, or `DROPPED` - there is deliberately no way to silently confirm a failure. See `backend/src/reconcile*.ts`, run the walkthrough with `cd backend && npm run demo:reconcile`.
 >>
+
+## Durable job queue
+
+The risk pipeline fans one Safe transaction event into four independent analyses - **rules, wallet risk, simulation, and LLM judgment** - and any one of them can time out, crash, rate-limit, or vanish mid-run. `backend/src/job*` implements the durable job layer that keeps a transaction workflow alive through that (issue **#55**):
+
+- **`jobTypes.ts`** - the job model and its state machine (QUEUED → PROCESSING → COMPLETED / RETRYING → DEAD_LETTER / FAILED), plus the exponential-backoff retry policy.
+- **`jobStore.ts`** - an append-only, fsynced event log. Every transition is a durable snapshot event, so jobs persist *before* processing, state after a crash is rebuilt by replaying the log, and the log itself is the permanent audit trail (every failure reason and retry is an event, never overwritten).
+- **`jobEngine.ts`** - enqueue (idempotent per transaction + analysis type), exclusive lease-based claiming, guarded completion/failure, bounded retries with exponential backoff, dead-lettering, cancellation, abandoned-job recovery, and dead-letter replay.
+- **`jobWorker.ts`** - the claim → run → complete/fail loop. Workers are idempotent (duplicate event delivery or two racing workers can never produce a duplicate result), run each analysis under a per-job timeout that aborts it, and route failures into retry/DLQ.
+- **`jobStatusApi.ts`** - the internal status endpoint: `GET /jobs`, `GET /jobs/:id`, `GET /jobs/:id/events` (audit trail), `POST /jobs/:id/replay`. Bind it to 127.0.0.1 only.
+
+Walk through the whole failure story (flaky simulation → retry, failing LLM → dead-letter → replay → complete, restart recovery from disk) with:
+
+```
+cd backend && npm run demo:jobs
+```
+
   ## Repo layout
 
 - **`contracts/`** - `TripwireGuard.sol` (the Zodiac Guard), `RiskRegistry.sol` (the on-chain verdict store), tests, and deploy/demo scripts. Hardhat + Foundry.
