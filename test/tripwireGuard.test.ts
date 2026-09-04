@@ -100,6 +100,28 @@ describe("TripwireGuard", function () {
     await expect(check()).to.not.be.reverted
   })
 
+  it("lets the risk engine cancel a DELAYED transaction mid-window by overwriting its verdict to HIGH_RISK", async function () {
+    // checkTransaction always reads the *current* verdict for a tx hash, not
+    // a snapshot taken when it was first delayed - so the off-chain risk
+    // engine cancelling a transaction it's now more suspicious of is just
+    // another RiskRegistry.submitVerdict call, nothing Guard-side to build.
+    const { guard, registry, txHash, check } = await setup()
+    const releaseAt = (await time.latest()) + 600
+    await registry.submitVerdict(txHash, { status: Status.DELAYED, score: 40, releaseAt })
+    await expect(check()).to.be.revertedWithCustomError(guard, "InCoolingOffWindow").withArgs(txHash, releaseAt)
+
+    // Risk engine sees something new mid-window and cancels it outright.
+    await registry.submitVerdict(txHash, { status: Status.HIGH_RISK, score: 95, releaseAt: 0 })
+
+    // Still within the original cooling-off window, but now blocked for a
+    // different reason - HIGH_RISK, not the expired timer.
+    await expect(check()).to.be.revertedWithCustomError(guard, "BlockedHighRisk").withArgs(txHash, 95)
+
+    // And it stays blocked even after the original releaseAt passes.
+    await time.increaseTo(releaseAt)
+    await expect(check()).to.be.revertedWithCustomError(guard, "BlockedHighRisk").withArgs(txHash, 95)
+  })
+
   it("blocks everything while frozen, even a LOW_RISK verdict", async function () {
     const { guard, registry, txHash, check } = await setup()
     await registry.submitVerdict(txHash, { status: Status.LOW_RISK, score: 0, releaseAt: 0 })
