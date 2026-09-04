@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 
-import {Operation} from "@gnosis-guild/zodiac-core/contracts/core/Operation.sol";
+import {Enum} from "@gnosis.pm/safe-contracts/contracts/common/Enum.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {RiskRegistry} from "../RiskRegistry.sol";
@@ -65,7 +65,7 @@ contract TripwireGuardTest is Test {
     ///     staticcall would otherwise consume it.
     function _execWithGuard(address to, uint256 value, bytes memory data, bytes32 txHash) internal {
         guard.checkTransaction(
-            to, value, data, Operation.Call, 0, 0, 0, address(0), payable(address(0)), bytes(""), address(0)
+            to, value, data, Enum.Operation.Call, 0, 0, 0, address(0), payable(address(0)), bytes(""), address(0)
         );
         bool success = true;
         if (to == address(button)) {
@@ -82,7 +82,7 @@ contract TripwireGuardTest is Test {
     ///     code following the call inside the same helper would still run.
     function _checkOnly(address to, uint256 value, bytes memory data) internal {
         guard.checkTransaction(
-            to, value, data, Operation.Call, 0, 0, 0, address(0), payable(address(0)), bytes(""), address(0)
+            to, value, data, Enum.Operation.Call, 0, 0, 0, address(0), payable(address(0)), bytes(""), address(0)
         );
     }
 
@@ -90,7 +90,7 @@ contract TripwireGuardTest is Test {
 
     function test_BenignLowRiskExecutes() public {
         bytes memory data = abi.encodeCall(Button.pushButton, ());
-        bytes32 txHash = guard.txHashOf(address(button), 0, data, Operation.Call);
+        bytes32 txHash = guard.txHashOf(address(button), 0, data, Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.LOW_RISK, 5, 0));
 
         _execWithGuard(address(button), 0, data, txHash);
@@ -107,7 +107,7 @@ contract TripwireGuardTest is Test {
         vm.prank(owner);
         guard.setLimits(1 ether, 0);
 
-        bytes32 txHash = guard.txHashOf(beneficiary, 2 ether, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 2 ether, "", Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
 
         vm.deal(address(this), 3 ether);
@@ -124,7 +124,7 @@ contract TripwireGuardTest is Test {
     /// overwriting to HIGH_RISK.
     function test_DelayedVerdictBlocksUntilReleaseThenExecutes() public {
         bytes memory data = abi.encodeCall(Button.pushButton, ());
-        bytes32 txHash = guard.txHashOf(address(button), 0, data, Operation.Call);
+        bytes32 txHash = guard.txHashOf(address(button), 0, data, Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.DELAYED, 40, block.timestamp + 1 days));
 
         vm.expectRevert(
@@ -139,7 +139,7 @@ contract TripwireGuardTest is Test {
     }
 
     function test_DelayedVerdictCanBeCancelledMidWindow() public {
-        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.DELAYED, 40, block.timestamp + 1 days));
         _submit(txHash, _verdict(IRiskRegistry.Status.HIGH_RISK, 90, 0)); // engine escalates
 
@@ -152,7 +152,7 @@ contract TripwireGuardTest is Test {
     function test_HighRiskBlocksUnconditionally() public {
         // Zero value, empty calldata, no limits set: nothing else could
         // object - the verdict alone must carry the block.
-        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.HIGH_RISK, 85, 0));
 
         vm.expectRevert(abi.encodeWithSelector(TripwireGuard.BlockedHighRisk.selector, txHash, uint8(85)));
@@ -163,7 +163,7 @@ contract TripwireGuardTest is Test {
 
     function test_FrozenSafeBlocksEverythingRegardlessOfVerdict() public {
         bytes memory data = abi.encodeCall(Button.pushButton, ());
-        bytes32 txHash = guard.txHashOf(address(button), 0, data, Operation.Call);
+        bytes32 txHash = guard.txHashOf(address(button), 0, data, Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
 
         vm.prank(freezeAuthority); // the relayer-side authority can trip it
@@ -182,7 +182,7 @@ contract TripwireGuardTest is Test {
     /// @dev A per-verdict FROZEN status blocks too, even when the guard
     /// switch itself is not tripped.
     function test_FrozenVerdictStatusBlocksWithoutGuardFreeze() public {
-        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Enum.Operation.Call);
         _submit(txHash, _verdict(IRiskRegistry.Status.FROZEN, 100, 0));
 
         vm.expectRevert(TripwireGuard.GuardIsFrozen.selector);
@@ -193,7 +193,7 @@ contract TripwireGuardTest is Test {
 
     function test_NoVerdictFailsClosed() public {
         bytes memory data = abi.encodeCall(Button.pushButton, ());
-        bytes32 txHash = guard.txHashOf(address(button), 0, data, Operation.Call);
+        bytes32 txHash = guard.txHashOf(address(button), 0, data, Enum.Operation.Call);
         // Deliberately never submit a verdict.
 
         vm.expectRevert(abi.encodeWithSelector(TripwireGuard.AwaitingRiskScore.selector, txHash));
@@ -216,20 +216,20 @@ contract TripwireGuardTest is Test {
         guard.setLimits(0, 1 ether);
         vm.deal(address(this), 3 ether);
 
-        bytes32 tx1 = guard.txHashOf(beneficiary, 0.6 ether, "", Operation.Call);
+        bytes32 tx1 = guard.txHashOf(beneficiary, 0.6 ether, "", Enum.Operation.Call);
         _submit(tx1, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
         _execWithGuard(beneficiary, 0.6 ether, "", tx1);
         assertEq(guard.windowSpent(), 0.6 ether);
 
         // A reverted inner execution must not burn daily allowance.
-        bytes32 txRevert = guard.txHashOf(address(button), 0, abi.encodeCall(Button.pushButton, ()), Operation.Call);
+        bytes32 txRevert = guard.txHashOf(address(button), 0, abi.encodeCall(Button.pushButton, ()), Enum.Operation.Call);
         _submit(txRevert, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
         button.transferOwnership(beneficiary); // pushButton now reverts (not owner)
         guard.checkTransaction(
             address(button),
             0,
             abi.encodeCall(Button.pushButton, ()),
-            Operation.Call,
+            Enum.Operation.Call,
             0,
             0,
             0,
@@ -242,7 +242,7 @@ contract TripwireGuardTest is Test {
         assertEq(guard.windowSpent(), 0.6 ether);
 
         // 0.6 + 0.6 > 1.0 rolling cap: the third tx breaches the window.
-        bytes32 tx2 = guard.txHashOf(beneficiary, 0.6 ether, "", Operation.Call);
+        bytes32 tx2 = guard.txHashOf(beneficiary, 0.6 ether, "", Enum.Operation.Call);
         _submit(tx2, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -252,7 +252,7 @@ contract TripwireGuardTest is Test {
         _checkOnly(beneficiary, 0.6 ether, "");
 
         // After the window rolls over, spending is available again.
-        bytes32 tx3 = guard.txHashOf(beneficiary, 0.6 ether, "", Operation.Call);
+        bytes32 tx3 = guard.txHashOf(beneficiary, 0.6 ether, "", Enum.Operation.Call);
         _submit(tx3, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
         vm.warp(block.timestamp + guard.ROLLING_WINDOW() + 1);
         _execWithGuard(beneficiary, 0.6 ether, "", tx3);
@@ -262,7 +262,7 @@ contract TripwireGuardTest is Test {
     // -- RiskRegistry authorization (the relayer path under test) -------------
 
     function test_OnlyRelayerCanSubmitVerdicts() public {
-        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Enum.Operation.Call);
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(RiskRegistry.NotRelayer.selector, owner));
         registry.submitVerdict(txHash, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
@@ -274,7 +274,7 @@ contract TripwireGuardTest is Test {
         registry.setRelayer(newRelayer);
         assertEq(registry.relayer(), newRelayer);
 
-        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Operation.Call);
+        bytes32 txHash = guard.txHashOf(beneficiary, 0, "", Enum.Operation.Call);
         vm.prank(newRelayer);
         registry.submitVerdict(txHash, _verdict(IRiskRegistry.Status.LOW_RISK, 0, 0));
         assertEq(uint256(registry.verdictOf(txHash).status), uint256(IRiskRegistry.Status.LOW_RISK));
