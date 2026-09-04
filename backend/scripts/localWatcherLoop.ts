@@ -86,6 +86,9 @@ async function main() {
       value: BigInt(tx.value),
       isFirstSeenCounterparty: isContractCall,
       isUnverifiedOrFreshContract: isContractCall,
+      // This local harness doesn't run a real GoPlus lookup (#10) - "unknown"
+      // is the honest value: adds nothing to the score, never read as "clean".
+      counterpartyBlacklist: "unknown",
       historicalP95Value: 0n,
     })
     console.log("[rule engine]", result)
