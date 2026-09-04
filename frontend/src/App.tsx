@@ -5,6 +5,7 @@ import { PolicyChat } from "./components/PolicyChat.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
+import { SecurityTimelineCard } from "./components/SecurityTimelineCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { activeChain } from "./config.js"
 
@@ -22,6 +23,7 @@ export function App() {
         <SafeCard />
         <GuardCard />
         <RiskFeedCard />
+        <SecurityTimelineCard />
         <PolicyPanel />
         <SimulateAttackCard />
       </main>

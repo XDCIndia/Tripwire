@@ -501,3 +501,228 @@
   color: var(--text);
   margin-top: 12px;
 }
+
+/* Issue #87: Security Event Timeline */
+
+.tl-card {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.tl-description {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 14px;
+}
+
+.tl-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tl-controls button {
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.tl-controls button:hover {
+  border-color: var(--accent-border);
+}
+
+.tl-demo-active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  color: #6366f1;
+}
+
+.tl-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.tl-summary {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.tl-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Timeline entry */
+.tl-entry {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.tl-entry-transition {
+  background: rgba(99, 102, 241, 0.03);
+  border-radius: 6px;
+}
+
+.tl-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.tl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 12px;
+}
+
+.tl-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  min-height: 8px;
+}
+
+.tl-content {
+  flex: 1;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.tl-content:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tl-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tl-icon {
+  font-size: 13px;
+}
+
+.tl-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.tl-source {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tl-transition-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  letter-spacing: 0.04em;
+}
+
+.tl-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-states {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.tl-state {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tl-arrow {
+  color: var(--muted);
+}
+
+.tl-hash {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Expandable details */
+.tl-details {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.tl-detail-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.tl-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.tl-detail-label {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 60px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tl-detail-row span:not(.tl-detail-label) {
+  color: var(--text-h);
+}
+
+/* Children */
+.tl-children {
+  margin-left: 20px;
+}
+
+.tl-empty {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.tl-empty p {
+  margin: 0;
+}
