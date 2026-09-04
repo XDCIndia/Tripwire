@@ -16,7 +16,7 @@ function useGuardRead<T>(
     // Poll so the card reflects policy changes the moment an on-chain
     // transaction from the controls panel confirms.
     query: { enabled: Boolean(guardAddress), refetchInterval: 5000 },
-  }) as { data: T | undefined; isLoading: boolean }
+  }) as { data: T | undefined; isPending: boolean }
 }
 
 function formatLimit(value: bigint | undefined): string {
@@ -44,7 +44,7 @@ export function GuardCard() {
           <dd className="mono">{guardAddress}</dd>
           <dt>Status</dt>
           <dd>
-            {frozen.isLoading ? (
+            {frozen.isPending ? (
               "Loading…"
             ) : (
               <span className={`pill ${frozen.data ? "pill-frozen" : "pill-active"}`}>

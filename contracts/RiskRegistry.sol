@@ -36,6 +36,7 @@ contract RiskRegistry is IRiskRegistry, Ownable, ReentrancyGuard {
     event DefaultDelayWindowUpdated(uint256 defaultDelayWindow);
 
     error NotRelayer(address caller);
+    error InvalidZeroAddress();
 
     modifier onlyRelayer() {
         if (msg.sender != relayer) revert NotRelayer(msg.sender);
@@ -50,6 +51,7 @@ contract RiskRegistry is IRiskRegistry, Ownable, ReentrancyGuard {
     /// @notice Update the authorized relayer that can submit verdicts.
     /// @dev Only callable by the owner. Rejects address(0).
     function setRelayer(address _relayer) external onlyOwner {
+        if (_relayer == address(0)) revert InvalidZeroAddress();
         relayer = _relayer;
         emit RelayerUpdated(_relayer);
     }
