@@ -7,6 +7,7 @@ import { ConnectWallet } from "./components/ConnectWallet.js"
 import { EvidenceExplorerCard } from "./components/EvidenceExplorerCard.js"
 import { GuardCard } from "./components/GuardCard.js"
 import { TransactionIntentCard } from "./components/TransactionIntentCard.js"
+import { TrustVerificationCard } from "./components/TrustVerificationCard.js"
 import { TransactionIntegrityCard } from "./components/TransactionIntegrityCard.js"
 import { TransactionDiffCard } from "./components/TransactionDiffCard.js"
 import { NonceConflictCard } from "./components/NonceConflictCard.js"
@@ -41,6 +42,7 @@ export function App() {
         <AuditCard />
         <RiskFeedCard />
         <TransactionIntentCard />
+        <TrustVerificationCard />
         <TransactionIntegrityCard />
         <GuardCard />
         <AuditCard />

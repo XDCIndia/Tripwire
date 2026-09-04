@@ -610,6 +610,13 @@
 }
 
 .intent-description {
+/* Issue #80: Trust-Minimized Risk Verification */
+
+.verify-card {
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.verify-description {
 /* Issue #83: Transaction Integrity Fingerprinting */
 
 .integrity-card {
@@ -645,6 +652,7 @@
 }
 
 .intent-controls {
+.verify-controls {
 .integrity-controls {
   display: flex;
   gap: 8px;
@@ -682,6 +690,7 @@
 }
 
 .intent-controls button {
+.verify-controls button {
 .txdiff-controls button {
 .evidence-controls button {
 .tl-controls button {
@@ -707,6 +716,17 @@
 }
 
 .intent-btn-active {
+.verify-controls button:hover {
+  border-color: var(--accent-border);
+}
+
+.verify-btn-active {
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(22, 163, 74, 0.4) !important;
+  color: #16a34a;
+}
+
+.verify-hint {
 .integrity-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -973,6 +993,8 @@
 
 .intent-param-value {
   color: var(--text-h);
+/* Global status header */
+.verify-global {
 /* Status header */
 .integrity-status {
   border: 1px solid var(--border);
@@ -982,6 +1004,14 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.verify-global-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.verify-dot {
 .integrity-status-row {
   display: flex;
   align-items: center;
@@ -995,6 +1025,9 @@
   flex-shrink: 0;
 }
 
+.verify-global-label {
+  font-family: var(--mono);
+  font-size: 14px;
 .integrity-status-label {
   font-family: var(--mono);
   font-size: 13px;
@@ -1002,6 +1035,85 @@
   letter-spacing: 0.04em;
 }
 
+.verify-global-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.verify-stat {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.verify-stat-verified { color: #16a34a; }
+.verify-stat-mismatch { color: #dc2626; }
+.verify-stat-pending { color: #d97706; }
+
+.verify-global-warning {
+  font-size: 12px;
+  color: #dc2626;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  margin-top: 6px;
+}
+
+/* Transaction list */
+.verify-tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verify-tx {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.verify-tx-mismatch {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.verify-tx-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.verify-tx-hash {
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.verify-tx-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-left: auto;
+}
+
+.verify-tx-toggle {
+  font-size: 12px;
+  color: var(--muted);
+  width: 16px;
+  text-align: center;
+}
+
+.verify-tx-summary {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.verify-tx-source {
 .integrity-status-time {
   font-size: 11px;
   color: var(--muted);
@@ -1187,6 +1299,96 @@
   gap: 6px;
 }
 
+/* Expanded details */
+.verify-tx-details {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verify-detail-section h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.verify-source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.verify-source-label {
+  color: var(--muted);
+  min-width: 70px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.verify-source-action {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.verify-reasons {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.8;
+  padding-left: 8px;
+  border-left: 2px solid var(--border);
+  margin: 4px 0;
+}
+
+.verify-reasons p {
+  margin: 2px 0;
+}
+
+.verify-timestamp {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.verify-detail-missing {
+  opacity: 0.6;
+}
+
+.verify-detail-missing p {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.verify-mismatch-reasons {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+}
+
+.verify-mismatch-reasons p {
+  font-size: 12px;
+  color: #dc2626;
+  margin: 2px 0;
+}
+
+.verify-reconciled {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.verify-empty {
 .integrity-verdict-fp-label {
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1616,6 +1818,7 @@
 }
 
 .intent-empty p {
+.verify-empty p {
 /* Restricted actions */
 .health-restricted {
   margin-bottom: 16px;
