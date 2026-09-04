@@ -5,6 +5,7 @@ import { PolicyChat } from "./components/PolicyChat.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
+import { SecurityHealthCard } from "./components/SecurityHealthCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { activeChain } from "./config.js"
 
@@ -19,6 +20,7 @@ export function App() {
         <ConnectWallet />
       </header>
       <main className="grid">
+        <SecurityHealthCard />
         <SafeCard />
         <GuardCard />
         <RiskFeedCard />
