@@ -6,6 +6,7 @@ import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { EvidenceExplorerCard } from "./components/EvidenceExplorerCard.js"
 import { GuardCard } from "./components/GuardCard.js"
+import { TransactionDiffCard } from "./components/TransactionDiffCard.js"
 import { NonceConflictCard } from "./components/NonceConflictCard.js"
 import { RiskDecisionCard } from "./components/RiskDecisionCard.js"
 import { PolicyChat } from "./components/PolicyChat.js"
@@ -42,6 +43,7 @@ export function App() {
         <SecurityTimelineCard />
         <RiskDecisionCard />
         <PolicyPanel />
+        <TransactionDiffCard />
         <SimulateAttackCard />
         <BatchRiskCard />
         <SimulationIntegrityCard />
