@@ -542,3 +542,247 @@
   color: var(--text);
   opacity: 0.75;
 }
+
+/* Issue #90: Approval Scope Visualizer */
+
+.approval-card {
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.approval-description {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 14px;
+}
+
+.approval-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.approval-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.approval-form input {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.approval-form input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.approval-form button {
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.approval-form button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.approval-result {
+  margin-top: 18px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.approval-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.approval-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* Permission graph */
+.approval-graph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 0 0 20px;
+  padding: 16px 0;
+}
+
+.graph-node {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+  min-width: 180px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.graph-wallet {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.4);
+  color: #2563eb;
+}
+
+.graph-token {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #d97706;
+}
+
+.graph-spender {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #dc2626;
+}
+
+.graph-exposure {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.graph-edge {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 0;
+  text-align: center;
+}
+
+.graph-sub {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* Before / After table */
+.approval-section {
+  margin: 16px 0;
+}
+
+.approval-section h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.approval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.approval-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.approval-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-h);
+}
+
+.approval-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Security indicators */
+.approval-indicators {
+  margin: 16px 0;
+}
+
+.approval-indicators h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 10px;
+}
+
+.approval-indicators ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.approval-indicators li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.indicator-danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.indicator-warn {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.indicator-safe {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.indicator-emoji {
+  font-size: 14px;
+}
+
+/* Explanation */
+.approval-explanation {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-h);
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
