@@ -1,4 +1,4 @@
-import { type Chain, sepolia } from "viem/chains"
+import { type Chain, hardhat, sepolia } from "viem/chains"
 
 // XDC Apothem isn't in viem/chains, and isn't in Safe's supported chain
 // list either (verified against safe-config.safe.global - see #38) - which
@@ -17,10 +17,11 @@ export const apothem: Chain = {
   testnet: true,
 }
 
-export type ChainKey = "apothem" | "sepolia"
+export type ChainKey = "apothem" | "sepolia" | "localhost"
 
-export const CHAINS: Record<ChainKey, Chain> = { apothem, sepolia }
+export const CHAINS: Record<ChainKey, Chain> = { apothem, sepolia, localhost: hardhat }
 
 export function resolveChainKey(value: string | undefined): ChainKey {
-  return value === "sepolia" ? "sepolia" : "apothem"
+  if (value === "sepolia" || value === "localhost") return value
+  return "apothem"
 }
