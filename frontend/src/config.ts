@@ -22,4 +22,9 @@ export const deployment = {
   safeAddress: envAddress(import.meta.env.VITE_SAFE_ADDRESS as string | undefined),
   guardAddress: envAddress(import.meta.env.VITE_GUARD_ADDRESS as string | undefined),
   riskRegistryAddress: envAddress(import.meta.env.VITE_RISK_REGISTRY_ADDRESS as string | undefined),
+  // The drainer demo's target NFT and attacker contract (scripts/localDeploy.ts
+  // / deployTestnet.ts output) - only needed for SimulateAttackCard's real
+  // setApprovalForAll payload, not for the read-only views above.
+  nftAddress: envAddress(import.meta.env.VITE_NFT_ADDRESS as string | undefined),
+  attackerAddress: envAddress(import.meta.env.VITE_ATTACKER_ADDRESS as string | undefined),
 }
