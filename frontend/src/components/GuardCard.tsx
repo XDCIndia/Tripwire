@@ -4,14 +4,18 @@ import { activeChain, deployment } from "../config.js"
 import { GUARD_READ_ABI } from "../guardAbi.js"
 import { NotConfigured } from "./NotConfigured.js"
 
-function useGuardRead<T>(functionName: "owner" | "riskRegistry" | "frozen" | "perTxLimit" | "rollingLimit" | "windowSpent") {
+function useGuardRead<T>(
+  functionName: "owner" | "riskRegistry" | "freezeAuthority" | "frozen" | "perTxLimit" | "rollingLimit" | "windowSpent",
+) {
   const { guardAddress } = deployment
   return useReadContract({
     address: guardAddress,
     abi: GUARD_READ_ABI,
     functionName,
     chainId: activeChain.id,
-    query: { enabled: Boolean(guardAddress) },
+    // Poll so the card reflects policy changes the moment an on-chain
+    // transaction from the controls panel confirms.
+    query: { enabled: Boolean(guardAddress), refetchInterval: 5000 },
   }) as { data: T | undefined; isLoading: boolean }
 }
 

@@ -1,6 +1,7 @@
 import "./App.css"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
+import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
 import { activeChain } from "./config.js"
@@ -19,6 +20,7 @@ export function App() {
         <SafeCard />
         <GuardCard />
         <RiskFeedCard />
+        <PolicyPanel />
       </main>
     </div>
   )
