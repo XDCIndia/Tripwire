@@ -10,6 +10,7 @@ import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
 import { SafeCard } from "./components/SafeCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
+import { SimulationIntegrityCard } from "./components/SimulationIntegrityCard.js"
 import { SimulationCard } from "./components/SimulationCard.js"
 import { VerificationStatusCard } from "./components/VerificationStatusCard.js"
 import { activeChain } from "./config.js"
@@ -33,6 +34,7 @@ export function App() {
         <RiskDecisionCard />
         <PolicyPanel />
         <SimulateAttackCard />
+        <SimulationIntegrityCard />
         <AuthorizationCard />
         <NonceConflictCard />
         <SimulationCard />
