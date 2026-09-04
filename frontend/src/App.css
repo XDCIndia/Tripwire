@@ -368,3 +368,56 @@
 .tx-status .error {
   color: #dc2626;
 }
+
+/* Issue #19: simulate-attack button */
+
+.attack-card {
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.attack-desc {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.attack-btn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #dc2626;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease;
+}
+
+.attack-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.attack-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.attack-btn:disabled {
+  background: #7f1d1d;
+  opacity: 0.75;
+  cursor: default;
+}
+
+.attack-btn-fired {
+  background: #16a34a;
+}
+
+.attack-ok {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #16a34a;
+}
