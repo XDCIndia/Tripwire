@@ -501,3 +501,38 @@
   color: var(--text);
   margin-top: 12px;
 }
+
+/* Issue #44: simulation impact card */
+
+.sim-entry {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.sim-entry:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.sim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sim-warning {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--warn, #d97706);
+}
+
+.sim-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.75;
+}
