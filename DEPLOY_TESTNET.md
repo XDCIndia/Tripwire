@@ -145,19 +145,39 @@ wallet (MetaMask) to the same network, and you'll see:
 
 ## Step 5 — Verify the deployment
 
-### Check the Safe on-chain
+### Automated verification (recommended)
 
-The Safe is a standard GnosisSafe proxy. You can verify it on:
+Run the verification script to check all deployment health in one pass:
+
+```bash
+# Sepolia
+npm run deploy:verify -- --network sepolia
+
+# XDC Apothem
+npm run deploy:verify -- --network apothem
+```
+
+This checks:
+- Safe proxy has deployed code
+- Guard has deployed code
+- RiskRegistry has deployed code
+- Guard is enabled on the Safe
+- RiskRegistry owner matches deployer
+- RiskRegistry relayer is set
+- RiskRegistry delay window is readable
+- Guard state (frozen, limits) is readable
+- Owner account has balance
+
+### Manual verification
+
+**Check the Safe on-chain:**
 - Sepolia: https://sepolia.etherscan.io/address/<safeAddress>
 - Apothem: https://testnet.xdcscan.com/address/<safeAddress>
 
-### Check the Guard
+**Check the Guard:**
+Call `guard()` on the Safe contract — it should return the Guard address.
 
-The Guard is enabled on the Safe via `setGuard`. You can verify by calling
-`guard()` on the Safe contract — it should return the Guard address.
-
-### Check the RiskRegistry
-
+**Check the RiskRegistry:**
 Call `verdictOf(<txHash>)` on the RiskRegistry — it should return
 `UNSCORED` (0, 0, 0) for any transaction that hasn't been scored yet.
 
