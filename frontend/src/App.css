@@ -603,6 +603,13 @@
   opacity: 0.75;
 }
 
+/* Issue #81: Transaction Intent Decoder */
+
+.intent-card {
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.intent-description {
 /* Issue #80: Trust-Minimized Risk Verification */
 
 .verify-card {
@@ -644,6 +651,7 @@
   margin: 0 0 14px;
 }
 
+.intent-controls {
 .verify-controls {
 .integrity-controls {
   display: flex;
@@ -681,6 +689,7 @@
   margin-bottom: 12px;
 }
 
+.intent-controls button {
 .verify-controls button {
 .txdiff-controls button {
 .evidence-controls button {
@@ -702,6 +711,11 @@
   cursor: pointer;
 }
 
+.intent-controls button:hover {
+  border-color: var(--accent-border);
+}
+
+.intent-btn-active {
 .verify-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -757,12 +771,228 @@
   color: #8b5cf6;
 }
 
+.intent-hint {
 .evidence-hint {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 12px;
 }
 
+/* Intent tabs */
+.intent-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.intent-tab {
+  font-family: var(--sans);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.intent-tab:hover {
+  border-color: var(--accent-border);
+}
+
+.intent-tab-active {
+  font-weight: 600;
+}
+
+.intent-tab-unknown {
+  opacity: 0.6;
+}
+
+.intent-tab-count {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
+}
+
+/* Intent entry */
+.intent-entry {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.intent-entry-unknown {
+  border-color: rgba(107, 114, 128, 0.3);
+  background: rgba(107, 114, 128, 0.04);
+}
+
+.intent-type-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.intent-type-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.03em;
+}
+
+.intent-hash {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.intent-summary {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 10px;
+}
+
+/* Detail section */
+.intent-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.intent-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.intent-detail-label {
+  color: var(--muted);
+  min-width: 70px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.intent-detail-value {
+  color: var(--text-h);
+}
+
+.intent-unlimited {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* Risk badges */
+.intent-risk-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.intent-risk-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.04em;
+}
+
+/* Warnings */
+.intent-warning {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.intent-warning-danger {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.intent-warning-caution {
+  background: rgba(217, 119, 6, 0.06);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.intent-warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.intent-warning-text p {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+.intent-warning-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Unknown notice */
+.intent-unknown-notice {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(107, 114, 128, 0.06);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  margin-bottom: 10px;
+}
+
+.intent-unknown-notice p {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Decoded parameters */
+.intent-params {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.intent-params summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.intent-param {
+  display: flex;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.intent-param-name {
+  color: var(--muted);
+  min-width: 80px;
+  font-size: 11px;
+}
+
+.intent-param-value {
+  color: var(--text-h);
 /* Global status header */
 .verify-global {
 /* Status header */
@@ -1575,6 +1805,7 @@
   margin-left: auto;
 }
 
+.intent-empty {
 .evidence-verdict-summary {
   font-size: 13px;
   margin-bottom: 6px;
@@ -1586,6 +1817,7 @@
   margin: 6px 0 0;
 }
 
+.intent-empty p {
 .verify-empty p {
 /* Restricted actions */
 .health-restricted {
