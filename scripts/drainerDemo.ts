@@ -73,8 +73,8 @@ async function main() {
   console.log("Owner after: ", ownerAfter)
   console.log(ownerAfter === attackerAddress ? "Token drained." : "Drain did not succeed.")
 
-  void deployer
-  void mintReceipt
+  console.log("\nDeployer:", deployer.address)
+  console.log("Mint tx mined in block:", mintReceipt?.blockNumber)
 }
 
 main().catch((err) => {
