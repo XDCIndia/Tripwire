@@ -41,7 +41,11 @@ Try it on the example above:
 cd backend && npm run demo:policy
 ```
 
-## Repo layout
+### Reconciling enforcement with the chain (attestation)
+
+Writing a verdict is not the same as enforcing it. Between the submit and the next block a verdict can be overwritten, the Guard unfrozen, or limits raised - so the backend never assumes a verdict it wrote actually stopped anything. For every verdict it submits, it records the **expected enforcement** (allow / delay / block, derived the same way `TripwireGuard.checkTransaction` enforces) and independently re-reads the chain to compare. Outcomes are `MATCH`, `MISMATCH` (critical - a protection gap, latched forever on the record), `PENDING` (auto re-checked with backoff), `REVERTED`, or `DROPPED` - there is deliberately no way to silently confirm a failure. See `backend/src/reconcile*.ts`, run the walkthrough with `cd backend && npm run demo:reconcile`.
+>>
+  ## Repo layout
 
 - **`contracts/`** - `TripwireGuard.sol` (the Zodiac Guard), `RiskRegistry.sol` (the on-chain verdict store), tests, and deploy/demo scripts. Hardhat + Foundry.
 - **`backend/`** - the off-chain pipeline: watcher, rule engine, fork simulation, relayer. TypeScript + viem.
