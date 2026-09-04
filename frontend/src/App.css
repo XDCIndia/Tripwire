@@ -889,3 +889,174 @@
 .state-empty p {
   margin: 0;
 }
+
+/* Issue #94: Contract Verification Status */
+
+.verify-card {
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.verify-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.verify-header h2 {
+  margin: 0;
+}
+
+.verify-refresh {
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.verify-refresh:hover:not(:disabled) {
+  border-color: var(--accent-border);
+}
+
+.verify-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verify-loading {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+}
+
+.verify-contracts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.verify-row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.verify-row.verify-ok {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.verify-row.verify-fail {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.verify-row.verify-unset {
+  border-color: var(--border);
+  opacity: 0.7;
+}
+
+.verify-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verify-icon {
+  font-size: 14px;
+  font-weight: 700;
+  width: 18px;
+  text-align: center;
+}
+
+.verify-ok .verify-icon {
+  color: #16a34a;
+}
+
+.verify-fail .verify-icon {
+  color: #dc2626;
+}
+
+.verify-unset .verify-icon {
+  color: var(--muted);
+}
+
+.verify-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.verify-status {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.verify-ok .verify-status {
+  color: #16a34a;
+}
+
+.verify-fail .verify-status {
+  color: #dc2626;
+}
+
+.verify-unset .verify-status {
+  color: var(--muted);
+}
+
+.verify-detail {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 0;
+  padding-left: 26px;
+}
+
+.verify-protection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.verify-protected {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.verify-unprotected {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.verify-protection-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.verify-protection-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verify-protected .verify-protection-value {
+  color: #16a34a;
+}
+
+.verify-unprotected .verify-protection-value {
+  color: #dc2626;
+}
