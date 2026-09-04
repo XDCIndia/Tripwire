@@ -13,7 +13,15 @@ async function setup() {
   const registry = await MockRiskRegistry.deploy()
 
   const TripwireGuard = await ethers.getContractFactory("TripwireGuard")
-  const guard = await TripwireGuard.deploy(owner.address, await registry.getAddress(), freezeAuthority.address)
+  // `owner` doubles as the avatar (the Safe) here: every checkTransaction /
+  // checkAfterExecution call in these tests uses the default signer, which
+  // is `owner`, satisfying onlyAvatar without a separate mock Safe.
+  const guard = await TripwireGuard.deploy(
+    owner.address,
+    await registry.getAddress(),
+    freezeAuthority.address,
+    owner.address,
+  )
 
   const to = target.address
   const value = 0n
@@ -35,7 +43,32 @@ async function setup() {
       owner.address,
     )
 
-  return { owner, freezeAuthority, registry, guard, to, value, data, txHash, check }
+  // Builds a distinct (to, value, data) tuple so each call gets its own
+  // txHash, pre-approves it as LOW_RISK in the registry, and returns a
+  // checker for it — used by the limits tests below, where each amount
+  // needs its own verdict the same way a real pending tx would.
+  const approvedCheck = async (checkValue: bigint, salt = 0) => {
+    const checkData = salt === 0 ? "0x" : ethers.solidityPacked(["uint256"], [salt])
+    const checkTxHash = await guard.txHashOf(to, checkValue, checkData, CALL)
+    await registry.submitVerdict(checkTxHash, { status: Status.LOW_RISK, score: 5, releaseAt: 0 })
+    const run = () =>
+      guard.checkTransaction(
+        to,
+        checkValue,
+        checkData,
+        CALL,
+        0,
+        0,
+        0,
+        ethers.ZeroAddress,
+        ethers.ZeroAddress,
+        "0x",
+        owner.address,
+      )
+    return { txHash: checkTxHash, run }
+  }
+
+  return { owner, freezeAuthority, registry, guard, to, value, data, txHash, check, approvedCheck }
 }
 
 describe("TripwireGuard", function () {
@@ -111,5 +144,108 @@ describe("TripwireGuard", function () {
     )
     await expect(guard.setFreezeAuthority(other.address)).to.not.be.reverted
     await expect(guard.connect(other).freeze()).to.not.be.reverted
+  })
+
+  it("rejects checkTransaction and checkAfterExecution from anyone other than the avatar", async function () {
+    const { guard, registry, txHash, to, value, data } = await setup()
+    await registry.submitVerdict(txHash, { status: Status.LOW_RISK, score: 0, releaseAt: 0 })
+    const [, , , other] = await ethers.getSigners()
+
+    await expect(
+      guard
+        .connect(other)
+        .checkTransaction(to, value, data, CALL, 0, 0, 0, ethers.ZeroAddress, ethers.ZeroAddress, "0x", other.address),
+    ).to.be.revertedWithCustomError(guard, "NotAvatar")
+
+    await expect(guard.connect(other).checkAfterExecution(txHash, true)).to.be.revertedWithCustomError(
+      guard,
+      "NotAvatar",
+    )
+  })
+
+  it("only the owner can update the avatar", async function () {
+    const { guard } = await setup()
+    const [, , , other] = await ethers.getSigners()
+    await expect(guard.connect(other).setAvatar(other.address)).to.be.revertedWithCustomError(
+      guard,
+      "OwnableUnauthorizedAccount",
+    )
+  })
+
+  describe("limits", function () {
+    // Simulates the Safe's real call sequence: checkTransaction before the
+    // inner call, checkAfterExecution(success) after it - only that second
+    // step is what actually records spend against the rolling window.
+    const execute = async (guard: any, run: () => Promise<any>, txHash: string) => {
+      await run()
+      await guard.checkAfterExecution(txHash, true)
+    }
+
+    it("allows a transaction under both limits and records its spend once executed", async function () {
+      const { guard, approvedCheck } = await setup()
+      await guard.setLimits(100n, 1000n)
+      const { run, txHash } = await approvedCheck(50n)
+      await expect(execute(guard, run, txHash)).to.not.be.reverted
+      expect(await guard.windowSpent()).to.equal(50n)
+    })
+
+    it("reverts outright on a transaction over the per-tx limit - it does not get to spend at all", async function () {
+      const { guard, approvedCheck } = await setup()
+      await guard.setLimits(100n, 100000n)
+      const { txHash, run } = await approvedCheck(500n)
+      await expect(run()).to.be.revertedWithCustomError(guard, "PerTxLimitExceeded").withArgs(txHash, 500n, 100n)
+      expect(await guard.windowSpent()).to.equal(0n)
+    })
+
+    it("reverts on a transaction that would push the rolling 24h total over its limit, even though it's under the per-tx limit", async function () {
+      const { guard, approvedCheck } = await setup()
+      await guard.setLimits(1000n, 600n)
+
+      const first = await approvedCheck(400n, 1)
+      await expect(execute(guard, first.run, first.txHash)).to.not.be.reverted
+      expect(await guard.windowSpent()).to.equal(400n)
+
+      // 400 + 300 = 700 > 600 rolling limit, even though 300 < perTxLimit on its own.
+      const second = await approvedCheck(300n, 2)
+      await expect(second.run())
+        .to.be.revertedWithCustomError(guard, "RollingLimitExceeded")
+        .withArgs(second.txHash, 700n, 600n)
+      // The rejected attempt never spent anything - the running total is unchanged.
+      expect(await guard.windowSpent()).to.equal(400n)
+    })
+
+    it("resets the rolling window 24 hours after the first spend in it", async function () {
+      const { guard, approvedCheck } = await setup()
+      await guard.setLimits(1000n, 600n)
+
+      const first = await approvedCheck(500n, 1)
+      await expect(execute(guard, first.run, first.txHash)).to.not.be.reverted
+      expect(await guard.windowSpent()).to.equal(500n)
+
+      await time.increase(await guard.ROLLING_WINDOW())
+      expect(await guard.windowSpent()).to.equal(0n) // stale window reads back as spent-nothing
+
+      const second = await approvedCheck(500n, 2)
+      await expect(execute(guard, second.run, second.txHash)).to.not.be.reverted
+      expect(await guard.windowSpent()).to.equal(500n)
+    })
+
+    it("does not count a reverted inner execution against the rolling limit", async function () {
+      const { guard, approvedCheck } = await setup()
+      await guard.setLimits(1000n, 600n)
+      const { txHash, run } = await approvedCheck(500n)
+      await run()
+      await guard.checkAfterExecution(txHash, false)
+      expect(await guard.windowSpent()).to.equal(0n)
+    })
+
+    it("only the owner can update limits", async function () {
+      const { guard } = await setup()
+      const [, , , other] = await ethers.getSigners()
+      await expect(guard.connect(other).setLimits(1n, 1n)).to.be.revertedWithCustomError(
+        guard,
+        "OwnableUnauthorizedAccount",
+      )
+    })
   })
 })
