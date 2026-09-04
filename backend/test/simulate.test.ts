@@ -66,9 +66,7 @@ describe("simulateTransaction", function () {
         throw new Error("boom")
       }),
     })
-    await expect(simulateTransaction(client, { from: SAFE, to: TOKEN, value: 0n, data: "0x" })).rejects.toThrow(
-      "boom",
-    )
+    await expect(simulateTransaction(client, { from: SAFE, to: TOKEN, value: 0n, data: "0x" })).rejects.toThrow("boom")
     expect(client.revert).toHaveBeenCalledWith("0x1")
   })
 
@@ -95,6 +93,8 @@ describe("simulateTransaction", function () {
       watchTokens: [{ address: TOKEN, standard: "erc20", spender: ATTACKER }],
     })
     expect(readErc20Allowance).toHaveBeenCalledWith(TOKEN, SAFE, ATTACKER)
-    expect(diff.newAllowances).toEqual([{ token: TOKEN, spender: ATTACKER, standard: "erc20", before: 0n, after: 500n }])
+    expect(diff.newAllowances).toEqual([
+      { token: TOKEN, spender: ATTACKER, standard: "erc20", before: 0n, after: 500n },
+    ])
   })
 })

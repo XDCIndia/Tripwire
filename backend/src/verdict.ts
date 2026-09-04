@@ -54,15 +54,21 @@ export function verdictFromRuleEngine(
 }
 
 /**
- * Placeholder shape for #12's eventual LLM output - kept minimal and
- * type-only here so this module doesn't need to depend on #12 landing
- * first. When it does, its result plugs in as the `llm` argument below and
- * takes precedence over the rule engine, since it's judging context the
- * rule engine can't (see the proposal's AI-engine section).
+ * Issue #12's LLM output, validated by `parseLlmVerdict` in llmReasoning.ts
+ * against the schema `{ txHash, score, label, reasons[], recommended_action }`
+ * before it ever reaches the relayer. Takes precedence over the rule engine
+ * when present, since it's judging context the rule engine can't (see the
+ * proposal's AI-engine section). `reasons` and `recommendedAction` are
+ * additive context for dashboards and humans; the on-chain status still
+ * derives from `score`/`label`.
  */
 export interface LlmVerdict {
   score: number
   label: RiskLabel
+  /** One short human-readable sentence per contextual concern the model flagged. */
+  reasons?: string[]
+  /** "allow" | "delay" | "block" | "freeze" - dashboard copy, not an on-chain field. */
+  recommendedAction?: string
 }
 
 /**
@@ -78,5 +84,8 @@ export function finalVerdict(
   options: { delaySeconds?: number; now?: () => number } = {},
 ): OnChainVerdict {
   if (!llm) return verdictFromRuleEngine(ruleResult, options)
-  return verdictFromRuleEngine({ score: llm.score, label: llm.label, matchedSignals: ruleResult.matchedSignals }, options)
+  return verdictFromRuleEngine(
+    { score: llm.score, label: llm.label, matchedSignals: ruleResult.matchedSignals },
+    options,
+  )
 }
