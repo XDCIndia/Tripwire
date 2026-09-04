@@ -35,14 +35,43 @@ interface RiskFeedItemDto {
 
 const configuredFeed = import.meta.env.VITE_RISK_FEED_URL as string | undefined
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined
-/** VITE_RISK_FEED_URL wins; otherwise the feed is served under the backend root. */
-const feedUrl: string | undefined = configuredFeed ?? (backendUrl ? `${backendUrl}/risk-feed` : undefined)
+/** VITE_RISK_FEED_URL wins; otherwise the feed is served at GET /tx on the orchestrator. */
+const feedUrl: string | undefined = configuredFeed ?? (backendUrl ? `${backendUrl}/tx` : undefined)
 
 async function fetchFeed(): Promise<RiskFeedItemDto[]> {
   const res = await fetch(feedUrl!)
   if (!res.ok) throw new Error(`risk feed returned ${res.status}`)
-  const body = (await res.json()) as RiskFeedItemDto[] | { items: RiskFeedItemDto[] }
-  return Array.isArray(body) ? body : body.items
+  const body = (await res.json()) as unknown
+  return normalizeFeed(body)
+}
+
+/**
+ * The orchestrator (issue #45, now merged) serves processing states, not
+ * bare feed items - map the state onto the feed DTO the list renders.
+ */
+function normalizeFeed(body: unknown): RiskFeedItemDto[] {
+  const items = Array.isArray(body) ? body : (body as { items?: unknown[] }).items
+  if (!Array.isArray(items)) return []
+  return items.map((raw) => {
+    const state = raw as {
+      txHash?: string
+      status?: string
+      updatedAt?: string
+      canonical?: { score?: number; status?: string; action?: string; explanation?: string }
+      contributions?: Array<{ reasons?: string[] }>
+    }
+    const reasons: string[] = []
+    if (state.canonical?.explanation) reasons.push(state.canonical.explanation)
+    for (const c of state.contributions ?? []) reasons.push(...(c.reasons ?? []))
+    return {
+      txHash: state.txHash ?? "",
+      score: state.canonical?.score,
+      status: state.canonical?.status ?? "pending",
+      action: state.canonical?.action as RiskFeedItemDto["action"],
+      reasons: reasons.length > 0 ? reasons : undefined,
+      at: state.updatedAt ?? new Date().toISOString(),
+    }
+  })
 }
 
 function shorten(hash: string): string {
