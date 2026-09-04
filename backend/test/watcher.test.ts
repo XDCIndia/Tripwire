@@ -78,10 +78,10 @@ describe("PendingTxWatcher", function () {
   })
 
   it("emits only the newly-appeared transaction when the queue grows", async function () {
-    const client = mockClient([raw({ safeTxHash: "0xhash1" })], [
-      raw({ safeTxHash: "0xhash1" }),
-      raw({ safeTxHash: "0xhash2", nonce: "4" }),
-    ])
+    const client = mockClient(
+      [raw({ safeTxHash: "0xhash1" })],
+      [raw({ safeTxHash: "0xhash1" }), raw({ safeTxHash: "0xhash2", nonce: "4" })],
+    )
     const onNewTx = vi.fn()
     const watcher = new PendingTxWatcher(client, SAFE, onNewTx)
 
@@ -91,5 +91,129 @@ describe("PendingTxWatcher", function () {
     expect(second).toHaveLength(1)
     expect(second[0].safeTxHash).toBe("0xhash2")
     expect(onNewTx).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe("PendingTxWatcher circuit breaker", function () {
+  function failingClient(error: Error): { client: SafeTxServiceClient; calls: ReturnType<typeof vi.fn> } {
+    const calls = vi.fn(async () => {
+      throw error
+    })
+    return { client: { getPendingTransactions: calls }, calls }
+  }
+
+  it("opens after maxConsecutiveFailures and reports via onBreakerChange", async function () {
+    const { client } = failingClient(new Error("service down"))
+    const transitions: boolean[] = []
+    const watcher = new PendingTxWatcher(client, SAFE, () => {}, {
+      maxConsecutiveFailures: 3,
+      onBreakerChange: (open) => transitions.push(open),
+    })
+
+    for (let i = 0; i < 3; i++) {
+      await expect(watcher.pollOnce()).rejects.toThrow("service down")
+    }
+
+    expect(watcher.breakerState).toBe("open")
+    expect(transitions).toEqual([true])
+  })
+
+  it("closes again on the first successful poll after failures", async function () {
+    let fail = true
+    const calls = vi.fn(async () => {
+      if (fail) throw new Error("service down")
+      return { results: [] }
+    })
+    const transitions: boolean[] = []
+    const watcher = new PendingTxWatcher({ getPendingTransactions: calls }, SAFE, () => {}, {
+      maxConsecutiveFailures: 2,
+      onBreakerChange: (open) => transitions.push(open),
+    })
+
+    await expect(watcher.pollOnce()).rejects.toThrow()
+    await expect(watcher.pollOnce()).rejects.toThrow()
+    expect(watcher.breakerState).toBe("open")
+
+    fail = false
+    await watcher.pollOnce()
+
+    expect(watcher.breakerState).toBe("closed")
+    expect(transitions).toEqual([true, false])
+  })
+
+  it("start() stops calling the service while the breaker is open, and probes after the cooldown", async function () {
+    vi.useFakeTimers()
+    try {
+      let now = 0
+      let fail = true
+      const calls = vi.fn(async () => {
+        if (fail) throw new Error("service down")
+        return { results: [] }
+      })
+      const watcher = new PendingTxWatcher({ getPendingTransactions: calls }, SAFE, () => {}, {
+        maxConsecutiveFailures: 2,
+        breakerCooldownMs: 10_000,
+        now: () => now,
+      })
+
+      // Trip the breaker with two direct failures.
+      await expect(watcher.pollOnce()).rejects.toThrow()
+      await expect(watcher.pollOnce()).rejects.toThrow()
+      const callsWhenTripped = calls.mock.calls.length
+
+      const handle = watcher.start(1000)
+      try {
+        // Three interval ticks inside the cooldown: service must not be hit.
+        await vi.advanceTimersByTimeAsync(3000)
+        expect(calls.mock.calls.length).toBe(callsWhenTripped)
+
+        // After the cooldown the next tick probes once; success closes the
+        // breaker and normal polling resumes.
+        now += 10_000
+        fail = false
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(calls.mock.calls.length).toBeGreaterThan(callsWhenTripped)
+        expect(watcher.breakerState).toBe("closed")
+      } finally {
+        clearInterval(handle)
+      }
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("a failed probe poll reopens the breaker for another full cooldown", async function () {
+    vi.useFakeTimers()
+    try {
+      let now = 0
+      const calls = vi.fn(async () => {
+        throw new Error("service down")
+      })
+      const watcher = new PendingTxWatcher({ getPendingTransactions: calls }, SAFE, () => {}, {
+        maxConsecutiveFailures: 2,
+        breakerCooldownMs: 10_000,
+        now: () => now,
+      })
+
+      await expect(watcher.pollOnce()).rejects.toThrow()
+      await expect(watcher.pollOnce()).rejects.toThrow()
+
+      const handle = watcher.start(1000)
+      try {
+        // First cooldown elapses -> one probe, which fails -> reopen.
+        now += 10_000
+        await vi.advanceTimersByTimeAsync(1000)
+        expect(watcher.breakerState).toBe("open")
+
+        // Inside the NEW cooldown the service is not called again.
+        const callsAfterProbe = calls.mock.calls.length
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(calls.mock.calls.length).toBe(callsAfterProbe)
+      } finally {
+        clearInterval(handle)
+      }
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
