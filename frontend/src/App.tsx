@@ -4,6 +4,7 @@ import { BatchRiskCard } from "./components/BatchRiskCard.js"
 import { AuthorizationCard } from "./components/AuthorizationCard.js"
 import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
+import { EvidenceExplorerCard } from "./components/EvidenceExplorerCard.js"
 import { GuardCard } from "./components/GuardCard.js"
 import { NonceConflictCard } from "./components/NonceConflictCard.js"
 import { RiskDecisionCard } from "./components/RiskDecisionCard.js"
@@ -36,6 +37,7 @@ export function App() {
         <GuardCard />
         <AuditCard />
         <RiskFeedCard />
+        <EvidenceExplorerCard />
         <ActionAuthCard />
         <SecurityTimelineCard />
         <RiskDecisionCard />
