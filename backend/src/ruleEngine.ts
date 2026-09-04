@@ -17,9 +17,17 @@ export interface RuleEngineInput {
   isFirstSeenCounterparty: boolean
   /** True if the target contract has no verified source, or was deployed very recently. */
   isUnverifiedOrFreshContract: boolean
+  /**
+   * Blacklist verdict for the tx's target contract, from #10's GoPlus lookup.
+   * "malicious" is a positive match and scores. "unknown" means the lookup
+   * failed or timed out - it adds nothing, but must never be read as "clean".
+   */
+  counterpartyBlacklist: BlacklistStatus
   /** This wallet's historical p95 transaction value, in wei. 0n if there isn't enough history yet. */
   historicalP95Value: bigint
 }
+
+export type BlacklistStatus = "malicious" | "clean" | "unknown"
 
 export type RiskLabel = "low_risk" | "medium_risk" | "high_risk"
 
@@ -45,6 +53,7 @@ const WEIGHTS = {
   PERMIT: 25,
   FIRST_SEEN_COUNTERPARTY: 20,
   UNVERIFIED_OR_FRESH_CONTRACT: 25,
+  BLACKLISTED_COUNTERPARTY: 60,
   ABOVE_HISTORICAL_P95: 15,
 } as const
 
@@ -94,6 +103,11 @@ export function scoreTransaction(input: RuleEngineInput): RuleEngineResult {
   if (input.isUnverifiedOrFreshContract) {
     score += WEIGHTS.UNVERIFIED_OR_FRESH_CONTRACT
     matchedSignals.push("target contract is unverified or was deployed very recently")
+  }
+
+  if (input.counterpartyBlacklist === "malicious") {
+    score += WEIGHTS.BLACKLISTED_COUNTERPARTY
+    matchedSignals.push("counterparty is flagged as malicious by the GoPlus Security blacklist")
   }
 
   if (input.historicalP95Value > 0n && input.value > input.historicalP95Value) {
