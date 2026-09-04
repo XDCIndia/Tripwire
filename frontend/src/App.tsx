@@ -2,7 +2,7 @@ import "./App.css"
 import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
-import { TransactionStateCard } from "./components/TransactionStateCard.js"
+import { RiskDecisionCard } from "./components/RiskDecisionCard.js"
 import { PolicyChat } from "./components/PolicyChat.js"
 import { PolicyPanel } from "./components/PolicyPanel.js"
 import { RiskFeedCard } from "./components/RiskFeedCard.js"
@@ -10,6 +10,7 @@ import { SafeCard } from "./components/SafeCard.js"
 import { SecurityTimelineCard } from "./components/SecurityTimelineCard.js"
 import { SimulateAttackCard } from "./components/SimulateAttackCard.js"
 import { SimulationCard } from "./components/SimulationCard.js"
+import { VerificationStatusCard } from "./components/VerificationStatusCard.js"
 import { activeChain } from "./config.js"
 
 export function App() {
@@ -23,12 +24,13 @@ export function App() {
         <ConnectWallet />
       </header>
       <main className="grid">
+        <VerificationStatusCard />
         <SafeCard />
-        <TransactionStateCard />
         <GuardCard />
         <AuditCard />
         <RiskFeedCard />
         <SecurityTimelineCard />
+        <RiskDecisionCard />
         <PolicyPanel />
         <SimulateAttackCard />
         <SimulationCard />
