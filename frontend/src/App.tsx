@@ -1,4 +1,5 @@
 import "./App.css"
+import { AuthorizationCard } from "./components/AuthorizationCard.js"
 import { AuditCard } from "./components/AuditCard.js"
 import { ConnectWallet } from "./components/ConnectWallet.js"
 import { GuardCard } from "./components/GuardCard.js"
@@ -32,6 +33,7 @@ export function App() {
         <RiskDecisionCard />
         <PolicyPanel />
         <SimulateAttackCard />
+        <AuthorizationCard />
         <NonceConflictCard />
         <SimulationCard />
       </main>
