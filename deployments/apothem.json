@@ -1,0 +1,17 @@
+{
+  "network": "xdc-apothem-testnet",
+  "chainId": 51,
+  "deployer": "FILL_AFTER_REAL_DEPLOY",
+  "safe": "FILL_AFTER_REAL_DEPLOY",
+  "guard": "FILL_AFTER_REAL_DEPLOY",
+  "riskRegistry": "FILL_AFTER_REAL_DEPLOY",
+  "verified": false,
+  "forkVerification": {
+    "date": "2026-09-07",
+    "method": "anvil --fork-url https://rpc.apothem.network",
+    "safe": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "guard": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "riskRegistry": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "note": "Local fork addresses (anvil defaults) — proof the identical setup deploys on Apothem chain state. Real addresses land here after the funded-key deploy."
+  }
+}
