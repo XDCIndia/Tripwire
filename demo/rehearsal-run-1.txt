@@ -1,0 +1,61 @@
+Script started on 2026-09-04 22:57:56+00:00 [COMMAND="bash /tmp/demo-driver.sh" <not executed on terminal>]
+=== Tripwire demo rehearsal — 2026-09-04T22:57:58+00:00 ===
+--- [1/6] local chain (hardhat node, LOCAL_E2E=true) ---
+--- [2/6] deploy Safe + Guard + RiskRegistry + drainer contracts ---
+Wrote /home/parth/zodiac-issue-10/local-deployment.json
+{
+  rpcUrl: 'http://127.0.0.1:8545',
+  chainId: 31337,
+  safeAddress: '0xeaF6B7a8eb2E3ff41E43a0d97cbCd749FA0cE94a',
+  guardAddress: '0x1291Be112d480055DaFd8a610b7d1e203891C274',
+  riskRegistryAddress: '0x4c5859f0F772848b2D91F1D83E2Fe57935348029',
+  nftAddress: '0xCD8a1C3ba11CF5ECfa6267617243239504a98d90',
+  attackerAddress: '0x82e01223d51Eb87e16A03E24687EDF0F294da6f1',
+  ownerAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+  ownerPrivateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+  relayerAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+  relayerPrivateKey: '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'
+}
+--- [3/6] start real pipeline watcher ---
+--- [4/6 first benign attempt (expect: reverted, fail-closed)] ACTION=transfer ---
+execTransaction MINED BUT REVERTED (fail-closed) - this is expected on a first attempt.
+--- [5/6 retry benign (expect: SUCCEEDED)] ACTION=transfer ---
+execTransaction SUCCEEDED.
+--- [6/6 attack: setApprovalForAll attempt (expect: reverted)] ACTION=approve ---
+execTransaction MINED BUT REVERTED (fail-closed) - this is expected on a first attempt.
+--- [   attack retry (expect: STILL reverted)] ACTION=approve ---
+execTransaction MINED BUT REVERTED (fail-closed) - this is expected on a first attempt.
+--- [   drain check (expect: reverted, NFT safe)] ACTION=drain ---
+Drain reverted - no approval was ever granted. transaction execution reverted (action="sendTransaction", data=null, reason=null, invocation=null, revert=null, transaction={ "data": "", "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "to": "0
+--- watcher pipeline log ---
+Watching Safe 0xeaF6B7a8eb2E3ff41E43a0d97cbCd749FA0cE94a on http://127.0.0.1:8545
+Polling every 2s. Trigger an attempt in another terminal, then watch it get scored here.
+
+
+[watcher] new attempt: {
+  to: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+  value: '10000000000000000',
+  safeTxHash: '0xfaf0cc5298fcf3d0a366d7683f6cc14eb1b1fc64958427141f8a848d786a3235'
+}
+[rule engine] { score: 0, label: 'low_risk', matchedSignals: [] }
+[relayer] submitted verdict: { status: 1, score: 0, releaseAt: 0 }
+
+[watcher] new attempt: {
+  to: '0xCD8a1C3ba11CF5ECfa6267617243239504a98d90',
+  value: '0',
+  safeTxHash: '0x8ce6a746e8a9974de46e26a77f450df9c113a844916171ff17b1b929eb424637'
+}
+[rule engine] {
+  score: 90,
+  label: 'high_risk',
+  matchedSignals: [
+    'setApprovalForAll: grants blanket control over an entire NFT collection',
+    'first-seen counterparty: this wallet has never interacted with this address before',
+    'target contract is unverified or was deployed very recently'
+  ]
+}
+[relayer] submitted verdict: { status: 3, score: 90, releaseAt: 0 }
+Terminated                 npx tsx scripts/localWatcherLoop.ts > /tmp/demo-watcher.log 2>&1
+=== rehearsal complete ===
+
+Script done on 2026-09-04 22:59:00+00:00 [COMMAND_EXIT_CODE="0"]
