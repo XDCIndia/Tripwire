@@ -53,10 +53,13 @@ interface AuditRecordDto {
   eventCount: number
 }
 
+const configuredAudit = import.meta.env.VITE_AUDIT_URL as string | undefined
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined
+/** VITE_AUDIT_URL wins; otherwise /audit on the shared backend origin. */
+const auditUrl: string | undefined = configuredAudit ?? (backendUrl ? `${backendUrl}/audit` : undefined)
 
 async function fetchAuditRecords(): Promise<AuditRecordDto[]> {
-  const res = await fetch(`${backendUrl}/audit?limit=5`)
+  const res = await fetch(`${auditUrl}?limit=5`)
   if (!res.ok) throw new Error(`audit endpoint returned ${res.status}`)
   return (await res.json()) as AuditRecordDto[]
 }
@@ -125,7 +128,7 @@ function AuditEntry({ record }: { record: AuditRecordDto }) {
 }
 
 export function AuditCard() {
-  const enabled = Boolean(backendUrl)
+  const enabled = Boolean(auditUrl)
   const query = useQuery({
     queryKey: ["audit", "latest"],
     queryFn: fetchAuditRecords,
@@ -137,7 +140,7 @@ export function AuditCard() {
     <section className="card">
       <h2>Decision audit ledger</h2>
       {!enabled ? (
-        <p className="sim-note">Set VITE_BACKEND_URL to stream audit records from the watcher.</p>
+        <p className="sim-note">Set VITE_AUDIT_URL (or VITE_BACKEND_URL) to stream audit records from the watcher.</p>
       ) : query.isLoading ? (
         "Loading…"
       ) : query.isError ? (

@@ -1,0 +1,88 @@
+/* ---------------------------------------------------------------------------
+   Tripwire — shared visual tokens
+
+   The one place the product's palette is defined. The landing site (Next) and
+   the dashboard (Vite) are separate applications with separate build pipelines,
+   and they should stay that way — but they are one product, and until this file
+   existed the palette was written out twice. `#030303` was defined
+   independently in each, which is a drift waiting to happen the first time
+   someone adjusts one of them.
+
+   Scope is deliberately narrow: colour, and the one geometry decision the whole
+   product rests on (nothing is rounded). No components, no layout, no
+   typography beyond the family stacks — those differ legitimately between a
+   marketing page and a dense dashboard, and forcing them to agree would be
+   sharing for its own sake.
+
+   Both apps re-export these under their own local names rather than using
+   `--tp-*` directly throughout, so neither has to be rewritten and each keeps
+   the vocabulary its own stylesheets already speak.
+   --------------------------------------------------------------------------- */
+:root {
+  /* --- Ground ------------------------------------------------------------ */
+  /* Pure black, not a near-black: the hairline rules and the canvas effects
+     are both calibrated against it. */
+  --tp-bg: #030303;
+  --tp-surface: rgba(255, 255, 255, 0.03);
+  --tp-surface-hover: rgba(255, 255, 255, 0.06);
+
+  /* --- Rules -------------------------------------------------------------- */
+  /* Every border in the product is one of these two. */
+  --tp-line: rgba(255, 255, 255, 0.2);
+  --tp-line-soft: rgba(255, 255, 255, 0.1);
+
+  /* --- Type --------------------------------------------------------------- */
+  /* White at graded opacity rather than a grey ramp, so text always sits in
+     the same colour family as the rules around it. */
+  --tp-fg: #ffffff;
+  --tp-fg-body: rgba(255, 255, 255, 0.8);
+  --tp-fg-muted: rgba(255, 255, 255, 0.55);
+  --tp-fg-faint: rgba(255, 255, 255, 0.45);
+
+  /* Type set *on* a white fill - the primary CTA in both apps, and the only
+     place in the product where type is not white. */
+  --tp-fg-on-primary: #060606;
+
+  /* --- Accent ------------------------------------------------------------- */
+  /* Two stops of one blue, and they are not interchangeable. The deep stop is
+     the only one that holds ~4.9:1 under white copy, so it is what the CTA
+     ribbon is capped at; the bright stop is for small marks on black — glyphs,
+     links, the code rain — where the deep stop goes muddy. */
+  --tp-accent: #2f6fd0;
+  --tp-accent-bright: #58a6ff;
+  --tp-accent-bg: rgba(88, 166, 255, 0.12);
+  --tp-accent-line: rgba(88, 166, 255, 0.45);
+
+  /* --- Status ------------------------------------------------------------- */
+  /* Semantic, and all three are lifted well clear of black — the usual
+     Tailwind-ish values are chosen against white and read as mud here. */
+  --tp-ok: #45d19a;
+  --tp-ok-bg: rgba(69, 209, 154, 0.12);
+  --tp-warn: #f0a94c;
+  --tp-warn-bg: rgba(240, 169, 76, 0.12);
+  --tp-danger: #ff6b6b;
+  --tp-danger-bg: rgba(255, 107, 107, 0.12);
+
+  /* --- Provenance --------------------------------------------------------- */
+  /* Whether a number was read off the chain or shipped as a fixture. Used on
+     the dashboard's section labels and nav dots; reserved on the site so the
+     two never disagree about what "live" looks like. */
+  --tp-live: #4fbdb0;
+  --tp-sample: #e0813f;
+
+  /* --- Decorative blooms -------------------------------------------------- */
+  /* The soft blue -> violet -> white glow that replaced the template's
+     licensed gradient art. Space-separated channels, so callers can set their
+     own alpha with rgb(var(--tp-bloom-mid) / 0.3). */
+  --tp-bloom-core: 236 230 255;
+  --tp-bloom-mid: 126 92 214;
+  --tp-bloom-edge: 42 107 224;
+
+  /* --- Geometry ----------------------------------------------------------- */
+  /* Square, everywhere. This is most of what makes the two apps read as one
+     thing, so it lives here rather than being re-decided per app. */
+  --tp-radius: 0px;
+
+  /* --- Families ----------------------------------------------------------- */
+  --tp-mono: ui-monospace, "Menlo", "SFMono-Regular", Consolas, monospace;
+}

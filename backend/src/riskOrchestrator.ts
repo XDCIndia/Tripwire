@@ -214,6 +214,13 @@ export interface RiskOrchestratorOptions {
   now?: () => Date
   sleep?: (ms: number) => Promise<void>
   onError?: (err: unknown) => void
+  /**
+   * Optional observer for every state transition, so an audit ledger can
+   * record the full lifecycle. Purely observational: it is called after the
+   * state is persisted, and anything it throws is swallowed - the audit
+   * surface must never be able to affect a risk decision.
+   */
+  audit?: (state: TxProcessingState, note?: string) => void
 }
 
 const HIGH_RISK_THRESHOLD = 70
@@ -248,8 +255,8 @@ export class RiskOrchestrator {
   private draining = false
 
   private constructor(
-    private readonly options: Required<Omit<RiskOrchestratorOptions, "simulation" | "llm" | "onError">> &
-      Pick<RiskOrchestratorOptions, "simulation" | "llm" | "onError">,
+    private readonly options: Required<Omit<RiskOrchestratorOptions, "simulation" | "llm" | "onError" | "audit">> &
+      Pick<RiskOrchestratorOptions, "simulation" | "llm" | "onError" | "audit">,
   ) {}
 
   static create(options: RiskOrchestratorOptions): RiskOrchestrator {
@@ -260,8 +267,8 @@ export class RiskOrchestrator {
       now: options.now ?? (() => new Date()),
       sleep: options.sleep ?? ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms))),
       ...options,
-    } as Required<Omit<RiskOrchestratorOptions, "simulation" | "llm" | "onError">> &
-      Pick<RiskOrchestratorOptions, "simulation" | "llm" | "onError">)
+    } as Required<Omit<RiskOrchestratorOptions, "simulation" | "llm" | "onError" | "audit">> &
+      Pick<RiskOrchestratorOptions, "simulation" | "llm" | "onError" | "audit">)
   }
 
   /** Queue depth - introspection for the status API. */
@@ -329,12 +336,24 @@ export class RiskOrchestrator {
       history: [...state.history, { at: this.options.now().toISOString(), status, note }],
     }
     await this.options.store.save(next)
+    this.emitAudit(next, note)
     return next
+  }
+
+  /** Observational only - anything the audit sink throws is swallowed. */
+  private emitAudit(state: TxProcessingState, note?: string): void {
+    if (!this.options.audit) return
+    try {
+      this.options.audit(state, note)
+    } catch (err) {
+      this.options.onError?.(err)
+    }
   }
 
   private async process(tx: ProposedTx): Promise<void> {
     let state = (await this.options.store.load(tx.txHash)) ?? (await this.freshState(tx.txHash))
     await this.options.store.save(state)
+    this.emitAudit(state)
     state = await this.transition(state, "analyzing")
 
     // 1. Rule engine: built-in, deterministic, synchronous - the floor.

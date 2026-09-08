@@ -1,111 +1,173 @@
+/* ---------------------------------------------------------------------------
+   Tripwire dashboard — base tokens
+
+   The palette is the landing page's, so the product does not look like a
+   different piece of software from the site that introduces it: pure black
+   ground, hairline white rules, white type at graded opacity, and a single
+   accent blue spent sparingly. Corners are square throughout — the site has no
+   rounded geometry anywhere, and that is most of what makes it read as one
+   thing.
+
+   Deliberately single-theme. The landing page commits to dark, so the previous
+   light/dark `prefers-color-scheme` pair (and its purple accent) is gone rather
+   than being carried forward half-applied.
+
+   The palette itself is not defined here. It comes from ../../shared/tokens.css,
+   which the landing site reads too, so the two cannot drift. What is below is
+   only the mapping from those shared names onto the local ones the dashboard's
+   2,000 lines of CSS already speak — which is why none of that had to change.
+   --------------------------------------------------------------------------- */
+@import "../../shared/tokens.css";
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Ground and rules */
+  --bg: var(--tp-bg);
+  --panel: var(--tp-surface);
+  --panel-hover: var(--tp-surface-hover);
+  --border: var(--tp-line);
+  --border-soft: var(--tp-line-soft);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Type, graded the way the site grades it */
+  --text: var(--tp-fg-body);
+  --text-h: var(--tp-fg);
+  --muted: var(--tp-fg-muted);
+  --faint: var(--tp-fg-faint);
+  --text-on-solid: var(--tp-fg-on-primary);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  /* One accent, matched to the site's */
+  --accent: var(--tp-accent-bright);
+  --accent-bg: var(--tp-accent-bg);
+  --accent-border: var(--tp-accent-line);
+
+  /* Status. Semantic, and lifted well clear of a black ground — the previous
+     values were picked against white and read as mud here. */
+  --ok: var(--tp-ok);
+  --ok-bg: var(--tp-ok-bg);
+  --warn: var(--tp-warn);
+  --warn-bg: var(--tp-warn-bg);
+  --danger: var(--tp-danger);
+  --danger-bg: var(--tp-danger-bg);
+
+  /* Provenance of a number: read off the chain, or shipped as a fixture. */
+  --live: var(--tp-live);
+  --sample: var(--tp-sample);
+
+  --code-bg: rgba(255, 255, 255, 0.05);
+  --shadow: none;
+
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: var(--tp-mono);
+
+  /* 15px, not the site's 16: this is a dense read, not prose. */
+  font: 15px/1.5 var(--sans);
+  letter-spacing: 0.1px;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
+html,
+body,
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  height: 100%;
 }
 
 body {
   margin: 0;
+  background: var(--bg);
+}
+
+/* The shell owns the layout now, so #root is just a full-bleed box. */
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  text-align: left;
+  border-inline: none;
+  box-sizing: border-box;
 }
 
 h1,
-h2 {
+h2,
+h3 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
+  margin: 0;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
+  font-size: 17px;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
   margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
 }
+
 p {
   margin: 0;
+}
+
+/* The site's label idiom: mono, small, uppercase, widely tracked. Used for
+   every eyebrow, tag and status chip in the dashboard. */
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--faint);
 }
 
 code,
 .counter {
   font-family: var(--mono);
   display: inline-flex;
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--text-h);
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 3px 7px;
   background: var(--code-bg);
+  border: 1px solid var(--border-soft);
+}
+
+::selection {
+  background: rgba(88, 166, 255, 0.3);
+  color: #fff;
+}
+
+/* Scrollbars, so they belong to the page rather than to the OS. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

@@ -51,10 +51,13 @@ interface RecordedSimulationDto {
   signals: SimulationSignalsDto
 }
 
+const configuredSim = import.meta.env.VITE_SIM_URL as string | undefined
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined
+/** VITE_SIM_URL wins; otherwise /simulations/latest on the shared backend origin. */
+const simUrl: string | undefined = configuredSim ?? (backendUrl ? `${backendUrl}/simulations/latest` : undefined)
 
 async function fetchLatestSimulations(): Promise<RecordedSimulationDto[]> {
-  const res = await fetch(`${backendUrl}/simulations/latest?limit=5`)
+  const res = await fetch(`${simUrl}?limit=5`)
   if (!res.ok) throw new Error(`sim endpoint returned ${res.status}`)
   return (await res.json()) as RecordedSimulationDto[]
 }
@@ -118,7 +121,7 @@ function SimulationEntry({ entry }: { entry: RecordedSimulationDto }) {
 }
 
 export function SimulationCard() {
-  const enabled = Boolean(backendUrl)
+  const enabled = Boolean(simUrl)
   const query = useQuery({
     queryKey: ["simulations", "latest"],
     queryFn: fetchLatestSimulations,
@@ -130,7 +133,7 @@ export function SimulationCard() {
     <section className="card">
       <h2>Simulation impact</h2>
       {!enabled ? (
-        <p className="sim-note">Set VITE_BACKEND_URL to stream fork-simulation results from the watcher.</p>
+        <p className="sim-note">Set VITE_SIM_URL (or VITE_BACKEND_URL) to stream fork-simulation results from the watcher.</p>
       ) : query.isLoading ? (
         "Loading…"
       ) : query.isError ? (

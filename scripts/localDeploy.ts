@@ -2,10 +2,13 @@
  * Full local stack deploy for end-to-end testing (no live testnet needed):
  * a real single-owner Safe, RiskRegistry, TripwireGuard enabled on the
  * Safe, and the drainer demo contracts. Writes local-deployment.json at
- * the repo root for the backend orchestrator and other scripts to read.
+ * the repo root for the backend orchestrator and other scripts to read,
+ * and writes the matching VITE_* vars straight into frontend/.env so there
+ * is no copy-paste step between deploying and demoing.
  *
- *   npx hardhat node                                    # terminal 1
+ *   LOCAL_E2E=true npx hardhat node                              # terminal 1
  *   npx hardhat run scripts/localDeploy.ts --network localhost   # terminal 2
+ *   npm run dev:all                                              # terminal 3
  */
 import fs from "node:fs"
 import path from "node:path"
@@ -23,6 +26,39 @@ function approvedHashSignature(owner: string): string {
   const s = ethers.ZeroHash
   const v = "01"
   return r + s.slice(2) + v
+}
+
+/**
+ * Merge keys into a dotenv file, preserving every line we do not own — so a
+ * hand-set ANTHROPIC key or a custom port survives a redeploy. Returns the
+ * keys actually written, so the log says what changed rather than claiming
+ * work it did not do.
+ */
+function upsertEnv(envPath: string, updates: Record<string, string>): string[] {
+  const existing = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8").split(/\r?\n/) : []
+  const remaining = new Map(Object.entries(updates))
+  const changed: string[] = []
+
+  const merged = existing.map((line) => {
+    const match = /^\s*([A-Z_][A-Z0-9_]*)\s*=/.exec(line)
+    if (!match) return line
+    const key = match[1]
+    if (!remaining.has(key)) return line
+    const value = remaining.get(key)!
+    remaining.delete(key)
+    if (line !== `${key}=${value}`) changed.push(key)
+    return `${key}=${value}`
+  })
+
+  for (const [key, value] of remaining) {
+    merged.push(`${key}=${value}`)
+    changed.push(key)
+  }
+
+  while (merged.length > 0 && merged[merged.length - 1].trim() === "") merged.pop()
+  fs.mkdirSync(path.dirname(envPath), { recursive: true })
+  fs.writeFileSync(envPath, `${merged.join("\n")}\n`, "utf8")
+  return changed
 }
 
 async function main() {
@@ -115,6 +151,22 @@ async function main() {
   fs.writeFileSync(outPath, JSON.stringify(deployment, null, 2))
   console.log("\nWrote", outPath)
   console.log(deployment)
+
+  // Point the dashboard at what was just deployed. "localhost" is the chain
+  // key chains.ts maps to the hardhat network (31337).
+  const frontendEnv = path.join(__dirname, "..", "frontend", ".env")
+  const changed = upsertEnv(frontendEnv, {
+    VITE_CHAIN: "localhost",
+    VITE_SAFE_ADDRESS: deployment.safeAddress,
+    VITE_GUARD_ADDRESS: deployment.guardAddress,
+    VITE_RISK_REGISTRY_ADDRESS: deployment.riskRegistryAddress,
+    VITE_BACKEND_URL: "http://localhost:3001",
+    VITE_AUDIT_URL: "http://localhost:3002/audit",
+    VITE_SIM_URL: "http://localhost:3003/simulations/latest",
+  })
+  console.log("\nWrote", frontendEnv)
+  console.log(changed.length > 0 ? `  set: ${changed.join(", ")}` : "  already up to date")
+  console.log("\nNext: npm run dev:all")
 }
 
 main().catch((err) => {

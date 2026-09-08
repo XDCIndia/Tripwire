@@ -1,42 +1,8 @@
-#root {
-  width: auto;
-  text-align: left;
-  border-inline: none;
-}
 
-.app {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px;
-}
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
-}
 
-.brand {
-  font-family: var(--heading);
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--text-h);
-}
 
-.chain-pill {
-  margin-left: 10px;
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--text-h);
-}
+
 
 .connect-wallet {
   display: flex;
@@ -44,20 +10,118 @@
   gap: 10px;
 }
 
-.connect-wallet button {
-  font-family: var(--sans);
+/* ---------------------------------------------------------------------------
+   CTA — the landing page's two buttons, restated in CSS.
+
+   The site builds these with Tailwind + motion (site/src/components/ButtonLink
+   and TextRoll); the dashboard has neither, so the shape is written out here
+   rather than pulled in. The values are the site's, not approximations of it:
+   40px tall, square, mono at 14/500 with -0.2px tracking, and a label that
+   rolls out the top on hover over 300ms.
+
+     .cta-primary  — "View Dashboard": solid white on near-black type.
+     .cta-ghost    — "View Docs": 5% white fill behind a 40% white hairline.
+   --------------------------------------------------------------------------- */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font-family: var(--mono);
   font-size: 14px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-h);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease;
 }
 
-.connect-wallet button:hover {
-  border-color: var(--accent-border);
+.cta:disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
+
+.cta-primary {
+  background: var(--text-h);
+  color: var(--text-on-solid);
+}
+
+.cta-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.cta-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--text-h);
+}
+
+.cta-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Worn by something that is a label, not an action - the connected address. */
+.cta-static {
+  cursor: default;
+}
+
+/* The rolling label. Two copies stacked: the visible one leaves through the
+   top while the duplicate rises into its place. */
+.cta-roll {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  /* Roomier than the button's own line-height, which is tight for centring: the
+     clip that makes the roll work would otherwise shave descenders. */
+  line-height: 1.3;
+}
+
+.cta-roll-out,
+.cta-roll-in {
+  display: block;
+  transition: transform 300ms ease-in-out;
+}
+
+.cta-roll-in {
+  position: absolute;
+  inset: 0;
+  transform: translateY(100%);
+}
+
+.cta:hover .cta-roll-out {
+  transform: translateY(-100%);
+}
+
+.cta:hover .cta-roll-in {
+  transform: translateY(0);
+}
+
+/* A label that leaves and re-enters is motion for its own sake to anyone who
+   has asked for less of it; the colour change alone still reads as hover. */
+@media (prefers-reduced-motion: reduce) {
+  .cta-roll-out,
+  .cta-roll-in {
+    transition: none;
+  }
+
+  .cta:hover .cta-roll-out,
+  .cta:hover .cta-roll-in {
+    transform: none;
+  }
+
+  .cta-roll-in {
+    display: none;
+  }
+}
+
 
 .grid {
   display: grid;
@@ -67,7 +131,7 @@
 
 .card {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 20px 22px;
   text-align: left;
 }
@@ -106,30 +170,24 @@
   font-size: 12px;
   font-weight: 600;
   padding: 2px 9px;
-  border-radius: 999px;
-}
-
-.pill-connected {
-  background: var(--accent-bg);
-  color: var(--text-h);
-  border: 1px solid var(--accent-border);
+  border-radius: 0;
 }
 
 .pill-active {
   background: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
+  color: var(--ok);
   border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
 .pill-frozen {
   background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
+  color: var(--danger);
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 .pill-warn {
   background: rgba(217, 119, 6, 0.15);
-  color: #d97706;
+  color: var(--warn);
   border: 1px solid rgba(217, 119, 6, 0.4);
 }
 
@@ -159,7 +217,7 @@
   padding: 10px 12px;
   margin-bottom: 10px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0;
 }
 
 .feed-head {
@@ -177,35 +235,35 @@
 }
 
 .feed-low {
-  border-left-color: #16a34a;
+  border-left-color: var(--ok);
 }
 .feed-low .feed-dot {
-  background: #16a34a;
+  background: var(--ok);
 }
 
 .feed-delay {
-  border-left-color: #d97706;
+  border-left-color: var(--warn);
 }
 .feed-delay .feed-dot {
-  background: #d97706;
+  background: var(--warn);
 }
 
 .feed-high {
-  border-left-color: #dc2626;
+  border-left-color: var(--danger);
 }
 .feed-high .feed-dot {
-  background: #dc2626;
+  background: var(--danger);
 }
 .feed-high .feed-state,
 .feed-high .feed-action {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .feed-frozen {
-  border-left-color: #2563eb;
+  border-left-color: var(--accent);
 }
 .feed-frozen .feed-dot {
-  background: #2563eb;
+  background: var(--accent);
 }
 
 .feed-pending {
@@ -296,7 +354,7 @@
   font-family: var(--mono);
   font-size: 14px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -311,7 +369,7 @@
   font-family: var(--sans);
   font-size: 14px;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -330,7 +388,7 @@
 
 .policy button.danger {
   border-color: rgba(239, 68, 68, 0.4);
-  color: #dc2626;
+  color: var(--danger);
   background: rgba(239, 68, 68, 0.08);
 }
 
@@ -372,7 +430,7 @@
 }
 
 .tx-status .error {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 /* Issue #19: simulate-attack button */
@@ -394,10 +452,10 @@
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #fff;
-  background: #dc2626;
+  color: var(--text-h);
+  background: var(--danger);
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -405,7 +463,7 @@
 }
 
 .attack-btn:hover:not(:disabled) {
-  background: #b91c1c;
+  background: var(--danger);
 }
 
 .attack-btn:active:not(:disabled) {
@@ -413,19 +471,19 @@
 }
 
 .attack-btn:disabled {
-  background: #7f1d1d;
+  background: var(--danger);
   opacity: 0.75;
   cursor: default;
 }
 
 .attack-btn-fired {
-  background: #16a34a;
+  background: var(--ok);
 }
 
 .attack-ok {
   margin: 10px 0 0;
   font-size: 13px;
-  color: #16a34a;
+  color: var(--ok);
 }
 
 /* PolicyChat */
@@ -450,7 +508,7 @@
   font-family: var(--sans);
   font-size: 14px;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -466,7 +524,7 @@
   font-family: var(--sans);
   font-size: 14px;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--accent-border);
   background: var(--accent-bg);
   color: var(--text-h);
@@ -477,7 +535,7 @@
 .policy-parse-btn:hover,
 .policy-confirm-btn:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-h);
 }
 
 .policy-parse-btn:disabled,
@@ -546,28 +604,24 @@
   border-color: rgba(234, 88, 12, 0.3);
 }
 
-.batch-description {
 /* Issue #92: Simulation Result Integrity */
 
 .sim-integrity-card {
   border-color: rgba(99, 102, 241, 0.3);
 }
 
-.sim-integrity-description {
 /* Issue #96: Execution Authorization Drift Detection */
 
 .auth-card {
   border-color: rgba(34, 197, 94, 0.3);
 }
 
-.auth-description {
 /* Issue #99: Attack Pattern Detection */
 
 .pattern-card {
   border-color: rgba(234, 88, 12, 0.3);
 }
 
-.pattern-description {
 /* Issue #44: simulation impact card */
 
 .sim-entry {
@@ -593,7 +647,7 @@
 .sim-warning {
   margin: 8px 0 0;
   font-size: 13px;
-  color: var(--warn, #d97706);
+  color: var(--warn, var(--warn));
 }
 
 .sim-note {
@@ -644,6 +698,10 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+.batch-description,
+.sim-integrity-description,
+.auth-description,
+.pattern-description,
 .rdc-description {
   font-size: 13px;
   color: var(--text);
@@ -679,10 +737,10 @@
   margin-bottom: 14px;
 }
 
-.sim-integrity-controls button {
-.auth-controls button {
-.pattern-controls {
-.state-controls {
+.sim-integrity-controls button,
+.auth-controls button,
+.pattern-controls,
+.state-controls,
 .rdc-controls {
   display: flex;
   gap: 8px;
@@ -699,12 +757,13 @@
   font-family: var(--sans);
   font-size: 13px;
   padding: 6px 14px;
-.state-controls button {
+}
+.state-controls button,
 .rdc-controls button {
   font-family: var(--sans);
   font-size: 12px;
   padding: 5px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -1651,12 +1710,12 @@
   border-color: var(--accent-border);
 }
 
-.batch-demo-active {
+.batch-demo-active,
 .sim-integrity-controls button:hover {
   border-color: var(--accent-border);
 }
 
-.sim-integrity-demo-active {
+.sim-integrity-demo-active,
 .auth-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -1664,7 +1723,7 @@
 .auth-demo-active {
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.4) !important;
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .auth-demo-blocked {
@@ -1672,7 +1731,7 @@
 .auth-demo-drifted {
   background: rgba(220, 38, 38, 0.1);
   border-color: rgba(220, 38, 38, 0.4) !important;
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .auth-demo-frozen {
@@ -1760,7 +1819,7 @@
 .sim-integrity-status {
 .auth-status {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 12px 14px;
   margin-bottom: 16px;
 }
@@ -1770,7 +1829,7 @@
   margin-bottom: 6px;
 }
 
-.sim-integrity-status-badge {
+.sim-integrity-status-badge,
 .auth-status-header {
   margin-bottom: 6px;
 }
@@ -1781,8 +1840,8 @@
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 6px;
-  color: #fff;
+  border-radius: 0;
+  color: var(--text-h);
   letter-spacing: 0.04em;
 }
 
@@ -2193,13 +2252,13 @@
 }
 
 .auth-match {
-  color: #16a34a;
+  color: var(--ok);
   font-size: 11px;
   font-weight: 600;
 }
 
 .auth-mismatch {
-  color: #dc2626;
+  color: var(--danger);
   font-size: 11px;
   font-weight: 600;
 }
@@ -2208,14 +2267,14 @@
   margin-bottom: 16px;
   padding: 12px 14px;
   border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: 8px;
+  border-radius: 0;
   background: rgba(220, 38, 38, 0.05);
 }
 
 .auth-drift-detail h3 {
   font-size: 13px;
   font-weight: 600;
-  color: #dc2626;
+  color: var(--danger);
   margin: 0 0 10px;
 }
 
@@ -2252,14 +2311,14 @@
 
 .auth-drift-warning {
   font-size: 12px;
-  color: #dc2626;
+  color: var(--danger);
   margin: 8px 0 0;
 }
 
 .auth-info {
   margin-top: 12px;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(34, 197, 94, 0.05);
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
@@ -2289,16 +2348,17 @@
   font-family: var(--sans);
   font-size: 13px;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid rgba(34, 197, 94, 0.4);
   background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
+  color: var(--ok);
   cursor: pointer;
   margin-top: 10px;
 }
 
 .auth-authorize-btn:hover {
   background: rgba(34, 197, 94, 0.2);
+}
 .pattern-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -2306,12 +2366,12 @@
 .pattern-demo-active {
   background: rgba(234, 88, 12, 0.1);
   border-color: rgba(234, 88, 12, 0.4) !important;
-  color: #ea580c;
+  color: var(--warn);
 }
 
-.batch-hint {
-.pattern-hint {
-.state-controls button:hover {
+.batch-hint,
+.pattern-hint,
+.state-controls button:hover,
 .rdc-controls button:hover {
   border-color: var(--accent-border);
 }
@@ -2319,7 +2379,7 @@
 .rdc-btn-active {
   background: rgba(239, 68, 68, 0.1);
   border-color: rgba(239, 68, 68, 0.4) !important;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .rdc-hint {
@@ -2329,10 +2389,10 @@
 }
 
 /* Batch header */
-.batch-header {
+.batch-header,
 .pattern-summary {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 14px 16px;
   margin-bottom: 16px;
   background: rgba(255, 255, 255, 0.02);
@@ -2369,6 +2429,7 @@
   font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
+}
 .pattern-summary-header {
   margin-bottom: 8px;
 }
@@ -2379,8 +2440,8 @@
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 6px;
-  color: #fff;
+  border-radius: 0;
+  color: var(--text-h);
   letter-spacing: 0.04em;
 }
 
@@ -2443,7 +2504,7 @@
 }
 
 .batch-row-critical {
-  border-left: 3px solid #dc2626;
+  border-left: 3px solid var(--danger);
 }
 
 .batch-call-idx {
@@ -2457,7 +2518,7 @@
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   letter-spacing: 0.04em;
 }
 
@@ -2621,14 +2682,14 @@
 .batch-contrib-bar {
   width: 80px;
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
 .batch-contrib-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 /* Call detail drawer */
@@ -2636,7 +2697,7 @@
   margin-bottom: 16px;
   padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -2669,11 +2730,11 @@
 
 .batch-score-fill {
   height: 6px;
-  border-radius: 3px;
+  border-radius: 0;
   width: 80px;
 }
 
-.batch-score-text {
+.batch-score-text,
 .pattern-summary-stats {
   display: flex;
   gap: 16px;
@@ -2691,7 +2752,7 @@
   border-left: 3px solid var(--border);
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0;
 }
 
 .pattern-header {
@@ -2734,12 +2795,14 @@
 .pattern-expand-btn {
   font-family: var(--sans);
   font-size: 12px;
+}
 /* Status header */
 .state-status {
+}
 /* Sections */
 .rdc-section {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   margin-bottom: 10px;
   overflow: hidden;
 }
@@ -2803,7 +2866,7 @@
 /* Risk summary */
 .rdc-risk-summary {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 16px;
   text-align: center;
   background: rgba(255, 255, 255, 0.02);
@@ -2849,7 +2912,7 @@
 }
 
 .rdc-risk-critical {
-  color: #dc2626;
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -2881,7 +2944,7 @@
 
 .rdc-signal {
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 8px 12px;
 }
 
@@ -2902,7 +2965,7 @@
   font-size: 10px;
   font-weight: 600;
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.06);
   letter-spacing: 0.03em;
 }
@@ -2956,9 +3019,9 @@
   font-family: var(--mono);
   font-size: 10px;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
+  color: var(--danger);
   border: 1px solid rgba(220, 38, 38, 0.25);
   margin: 2px 4px 2px 0;
   text-transform: capitalize;
@@ -2974,7 +3037,7 @@
 /* Aggregate decision */
 .batch-aggregate {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 14px 16px;
   background: rgba(255, 255, 255, 0.02);
 }
@@ -3007,12 +3070,19 @@
   line-height: 1.5;
 }
 
-.batch-empty {
+/* These were one rule, which gave the empty-state paragraph the chevron's
+   14px width — every word wrapped onto its own line. The toggle is a glyph and
+   wants a fixed box; the empty state is a sentence and wants the column. */
 .rdc-signal-toggle {
   font-size: 12px;
   color: var(--muted);
   width: 14px;
   text-align: center;
+}
+
+.batch-empty {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .rdc-signal-reason {
@@ -3071,14 +3141,14 @@
 
 .rdc-intent-warnings {
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(217, 119, 6, 0.06);
   border: 1px solid rgba(217, 119, 6, 0.15);
 }
 
 .rdc-intent-warnings p {
   font-size: 12px;
-  color: #d97706;
+  color: var(--warn);
   margin: 2px 0;
 }
 
@@ -3089,8 +3159,8 @@
   font-weight: 600;
 }
 
-.rdc-sim-would-succeed { color: #16a34a; }
-.rdc-sim-would-fail { color: #dc2626; }
+.rdc-sim-would-succeed { color: var(--ok); }
+.rdc-sim-would-fail { color: var(--danger); }
 .rdc-sim-pending { color: var(--muted); }
 
 .rdc-sim-changes h4,
@@ -3113,7 +3183,7 @@
   margin: 2px 0;
 }
 
-.rdc-sim-anomalies p { color: #d97706; }
+.rdc-sim-anomalies p { color: var(--warn); }
 
 /* AI Analysis */
 .rdc-ai-confidence {
@@ -3140,9 +3210,9 @@
   font-size: 10px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
+  color: var(--accent);
   letter-spacing: 0.02em;
 }
 
@@ -3213,12 +3283,12 @@
 
 .rdc-enf-consistent {
   font-size: 12px;
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .rdc-enf-inconsistent {
   font-size: 12px;
-  color: #dc2626;
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -3263,7 +3333,7 @@
   font-family: var(--sans);
   font-size: 12px;
   padding: 5px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -3315,9 +3385,9 @@
   font-family: var(--mono);
   font-size: 11px;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(234, 88, 12, 0.1);
-  color: #ea580c;
+  color: var(--warn);
   border: 1px solid rgba(234, 88, 12, 0.25);
   margin: 2px 4px 2px 0;
 }
@@ -3343,7 +3413,7 @@
   gap: 10px;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--bg);
   cursor: pointer;
   text-align: left;
@@ -3389,7 +3459,7 @@
   margin: 6px 0 0;
   padding: 10px 12px;
   border: 1px solid rgba(234, 88, 12, 0.2);
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(234, 88, 12, 0.03);
   width: 100%;
   max-width: 400px;
@@ -3417,8 +3487,8 @@
   word-break: break-all;
 }
 
-.pattern-empty {
-.state-rejection-buttons button:hover {
+.pattern-empty,
+.state-rejection-buttons button:hover,
 .verify-refresh:hover:not(:disabled) {
   border-color: var(--accent-border);
 }
@@ -3484,13 +3554,13 @@
 }
 
 .sim-integrity-match {
-  color: #16a34a;
+  color: var(--ok);
   font-size: 11px;
   font-weight: 600;
 }
 
 .sim-integrity-mismatch {
-  color: #dc2626;
+  color: var(--danger);
   font-size: 11px;
   font-weight: 600;
 }
@@ -3501,7 +3571,7 @@
 
 .sim-integrity-outcome {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.02);
 }
@@ -3512,8 +3582,8 @@
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 4px;
-  color: #fff;
+  border-radius: 0;
+  color: var(--text-h);
   letter-spacing: 0.04em;
   margin-bottom: 6px;
 }
@@ -3545,12 +3615,12 @@
   margin-bottom: 16px;
   padding: 12px 14px;
   border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: 8px;
+  border-radius: 0;
   background: rgba(220, 38, 38, 0.05);
 }
 
 .sim-integrity-drift-detail h3 {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .sim-integrity-drift-field {
@@ -3582,7 +3652,7 @@
 
 .sim-integrity-drift-warning {
   font-size: 12px;
-  color: #dc2626;
+  color: var(--danger);
   margin: 8px 0 0;
 }
 
@@ -3590,16 +3660,17 @@
   font-family: var(--sans);
   font-size: 13px;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid rgba(99, 102, 241, 0.4);
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--accent);
   cursor: pointer;
   margin-top: 10px;
 }
 
 .sim-integrity-simulate-btn:hover {
   background: rgba(99, 102, 241, 0.2);
+}
 .verify-contracts {
   display: flex;
   flex-direction: column;
@@ -3609,7 +3680,7 @@
 
 .verify-row {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
 }
@@ -3629,9 +3700,10 @@
   opacity: 0.7;
 }
 
-.pattern-empty p {
+.pattern-empty p,
 .state-empty p {
   margin: 0;
+}
 .verify-label {
   display: flex;
   align-items: center;
@@ -3646,11 +3718,11 @@
 }
 
 .verify-ok .verify-icon {
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .verify-fail .verify-icon {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .verify-unset .verify-icon {
@@ -3672,11 +3744,11 @@
 }
 
 .verify-ok .verify-status {
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .verify-fail .verify-status {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .verify-unset .verify-status {
@@ -3698,7 +3770,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--border);
 }
 
@@ -3727,9 +3799,9 @@
 }
 
 .verify-protected .verify-protection-value {
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .verify-unprotected .verify-protection-value {
-  color: #dc2626;
+  color: var(--danger);
 }

@@ -38,7 +38,10 @@ export const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
  * verdict lands, never whether a verdict exists. Override with
  * ANTHROPIC_MODEL or options.model.
  */
-export const DEFAULT_MODEL = "claude-3-5-haiku-20241022"
+// The pinned snapshot, not the `claude-haiku-4-5` alias: for pre-4.6 models the
+// dateless form is a convenience pointer that resolves to this ID, and a risk
+// engine should pin the exact model its scoring was tuned against.
+export const DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 const VERDICT_TOOL_NAME = "record_risk_verdict"
 

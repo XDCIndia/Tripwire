@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+
+# Local audit trail written by `npm run audit` (AUDIT_LOG_PATH)
+.data/

@@ -6,12 +6,17 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "orchestrator": "tsx src/orchestratorMain.ts",
+    "orchestrator": "tsx src/orchestratorHttp.ts",
+    "orchestrator:main": "tsx src/orchestratorMain.ts",
+    "audit": "tsx src/auditHttp.ts",
+    "sim": "tsx src/simHttp.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "demo:policy": "tsx scripts/policyDemo.ts",
     "demo:reconcile": "tsx scripts/reconcileDemo.ts",
-    "demo:jobs": "tsx scripts/jobQueueDemo.ts"
+    "demo:jobs": "tsx scripts/jobQueueDemo.ts",
+    "check:llm": "tsx scripts/checkLlm.ts",
+    "e2e:enforcement": "tsx scripts/e2eEnforcement.ts"
   },
   "dependencies": {
     "@safe-global/api-kit": "^5.0.3",
