@@ -102,6 +102,10 @@ const CURRENCY_OF_SUFFIX: Record<string, AmountCurrency> = {
   xdc: "XDC",
   txdc: "XDC",
   native: "XDC",
+  // Hardhat's native asset is ETH; the conversion math is identical to XDC
+  // (18-decimal native token), it was just missing from the vocabulary.
+  eth: "ETH",
+  ether: "ETH",
   wei: "WEI",
 }
 

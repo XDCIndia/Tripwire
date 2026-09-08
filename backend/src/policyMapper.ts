@@ -61,6 +61,7 @@ function currencyPrefix(currency: string): string {
 function currencySuffix(currency: string): string {
   if (currency === "WEI") return " wei"
   if (currency === "XDC") return " XDC"
+  if (currency === "ETH") return " ETH"
   return ""
 }
 
@@ -169,11 +170,11 @@ function resolveRule(rule: PolicyRule, ctx: ConversionContext, index: number): R
       throw new PolicyResolveError([`rule ${index + 1}: a wei amount cannot have decimals ("${value} wei")`])
     }
     wei = BigInt(value)
-  } else if (currency === "XDC") {
+  } else if (currency === "XDC" || currency === "ETH") {
     const fractionDigits = value.split(".")[1]?.length ?? 0
     if (fractionDigits > decimals) {
       throw new PolicyResolveError([
-        `rule ${index + 1}: amount "${value} XDC" has more fractional digits than the native asset supports (${decimals})`,
+        `rule ${index + 1}: amount "${value} ${currency}" has more fractional digits than the native asset supports (${decimals})`,
       ])
     }
     wei = decimalToScaled(value, decimals)

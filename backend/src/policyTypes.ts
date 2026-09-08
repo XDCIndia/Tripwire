@@ -22,7 +22,7 @@ export const POLICY_ACTIONS = ["ALLOW", "DELAY", "FREEZE"] as const
 export const ACTION_SEVERITY: Record<PolicyAction, number> = { ALLOW: 0, DELAY: 1, FREEZE: 2 }
 export type PolicyAction = (typeof POLICY_ACTIONS)[number]
 
-export const AMOUNT_CURRENCIES = ["USD", "XDC", "WEI"] as const
+export const AMOUNT_CURRENCIES = ["USD", "XDC", "ETH", "WEI"] as const
 export type AmountCurrency = (typeof AMOUNT_CURRENCIES)[number]
 
 export const COMPARISONS = ["<", "<=", ">", ">="] as const

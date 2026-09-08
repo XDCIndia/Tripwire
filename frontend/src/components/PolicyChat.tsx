@@ -14,7 +14,7 @@
  * enforcement path cannot disagree about what a policy means.
  */
 import { useState } from "react"
-import { useAccount, useWriteContract } from "wagmi"
+import { useAccount, useSwitchChain, useWriteContract } from "wagmi"
 
 import { activeChain, deployment } from "../config.js"
 
@@ -75,8 +75,9 @@ export function PolicyChat() {
   const [compiling, setCompiling] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const { isConnected } = useAccount()
-  const { writeContract, isPending } = useWriteContract()
+  const { isConnected, chainId: walletChainId } = useAccount()
+  const { writeContract, error: submitError, isPending, reset: resetSubmit } = useWriteContract()
+  const { switchChainAsync } = useSwitchChain()
 
   async function handleCompile(): Promise<void> {
     if (!input.trim() || !policyUrl) return
@@ -103,8 +104,19 @@ export function PolicyChat() {
     }
   }
 
-  function handleConfirm(): void {
+  async function handleConfirm(): Promise<void> {
     if (!compiled || !deployment.guardAddress) return
+    resetSubmit()
+    // wagmi refuses cross-chain writes; prompt the switch first so a wallet
+    // sitting on another network (e.g. Apothem) gets one MetaMask "Switch
+    // to Hardhat?" prompt instead of a dead click + mismatch error.
+    if (walletChainId !== activeChain.id) {
+      try {
+        await switchChainAsync({ chainId: activeChain.id })
+      } catch {
+        return // wallet declined the switch - MetaMask already explained
+      }
+    }
     writeContract(
       {
         address: deployment.guardAddress,
@@ -212,6 +224,13 @@ export function PolicyChat() {
                     >
                       {isPending ? "Confirming…" : "Confirm & Submit On-Chain"}
                     </button>
+                  )}
+                  {/* A failed writeContract (rejection, locked wallet, wrong
+                      network) used to vanish silently - the click looked dead. */}
+                  {submitError && (
+                    <p className="sim-warning" role="alert">
+                      ⚠️ On-chain submit failed: {submitError.message}
+                    </p>
                   )}
                 </div>
               )}

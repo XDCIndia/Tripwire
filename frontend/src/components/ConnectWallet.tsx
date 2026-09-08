@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { useRef } from "react"
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 
 function short(address: string): string {
@@ -30,8 +31,12 @@ function RollLabel({ children }: { children: ReactNode }) {
  */
 export function ConnectWallet() {
   const { address, isConnected } = useAccount()
-  const { connect, connectors, isPending } = useConnect()
+  const { connectAsync, connectors, error, isPending, reset } = useConnect()
   const { disconnect } = useDisconnect()
+  // Synchronous re-click guard. `disabled={isPending}` is not enough: React
+  // applies it a tick after the click, and MetaMask rejects a second
+  // wallet_requestPermissions while one is still open with "already pending".
+  const busy = useRef(false)
 
   if (isConnected && address) {
     return (
@@ -54,11 +59,31 @@ export function ConnectWallet() {
           key={connector.uid}
           className="cta cta-primary"
           disabled={isPending}
-          onClick={() => connect({ connector })}
+          onClick={() => {
+            if (busy.current) return
+            busy.current = true
+            reset()
+            connectAsync({ connector })
+              // The mutation's error state still records the failure; this
+              // catch only prevents an unhandled promise rejection.
+              .catch(() => {})
+              .finally(() => {
+                busy.current = false
+              })
+          }}
         >
           <RollLabel>{isPending ? "Connecting…" : `Connect ${connector.name}`}</RollLabel>
         </button>
       ))}
+      {/* aria-live so the failure is announced, not just shown — a click that
+          does nothing reads as "broken" when no wallet provider answers. */}
+      {error && (
+        <p className="connect-error" role="alert" aria-live="polite">
+          {/already pending/i.test(error.message)
+            ? "A connect request is already open in your wallet — approve or reject it there first."
+            : error.message}
+        </p>
+      )}
     </div>
   )
 }
