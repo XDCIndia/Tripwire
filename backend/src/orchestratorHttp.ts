@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
 import { readFileSync } from "node:fs"
 import { pathToFileURL } from "node:url"

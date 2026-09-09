@@ -1,17 +1,26 @@
 {
   "network": "xdc-apothem-testnet",
   "chainId": 51,
-  "deployer": "FILL_AFTER_REAL_DEPLOY",
-  "safe": "FILL_AFTER_REAL_DEPLOY",
-  "guard": "FILL_AFTER_REAL_DEPLOY",
-  "riskRegistry": "FILL_AFTER_REAL_DEPLOY",
-  "verified": false,
+  "deployer": "0x57d910c7B66b8fA8136A481D9Ec624c551f4a56c",
+  "safe": "0x0846576049827a1FF5495d2C05cA1fB137b4822B",
+  "guard": "0x72D4dBb3aDFA75C9af2C5aBe5e2fdA1AB180ead6",
+  "riskRegistry": "0x20ce80540ca1171bc756D7e0886E29D731B9beFD",
+  "verified": true,
+  "deployedAt": "2026-09-09T07:03:11.309Z",
+  "liveProof": {
+    "date": "2026-09-09",
+    "method": "drainer setApprovalForAll proposed via orchestrator /tx/propose; relayer wrote verdict to RiskRegistry on Apothem",
+    "txHash": "0x6ccbcdbda0dbe4774fef1c60ea41a134ac642bbb9dce45f14b5cd5cfa80a4a23",
+    "verdict": "DELAY (enum 2), risk score 45",
+    "onChainCheck": "verdictOf(txHash) on https://rpc.apothem.network returns non-empty verdict",
+    "explorer": "https://testnet.xdcscan.com/address/0x20ce80540ca1171bc756D7e0886E29D731B9beFD"
+  },
   "forkVerification": {
     "date": "2026-09-07",
     "method": "anvil --fork-url https://rpc.apothem.network",
     "safe": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
     "guard": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
     "riskRegistry": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "note": "Local fork addresses (anvil defaults) — proof the identical setup deploys on Apothem chain state. Real addresses land here after the funded-key deploy."
+    "note": "Local fork addresses (anvil defaults) — kept for reference. Real addresses above are live on Apothem."
   }
 }
